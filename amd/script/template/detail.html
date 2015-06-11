@@ -1,0 +1,13 @@
+<div 
+     ms-controller="detail" class="detail">
+    <h5>{{title}}</h5>
+    <div class="content">
+        {{content|html}}
+    </div>
+    <div ms-view><a href="##" class="comment" 
+         ms-click="comment($event, blogId)">评论</a></div>
+    <div class="comments">
+        <p 
+           ms-repeat-c="comments">xxx评论到：{{c}}</p>
+    </div>
+</div>

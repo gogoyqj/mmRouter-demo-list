@@ -1,0 +1,8 @@
+<div class="comment-box">
+    <textarea style="width: 100%;height:100px;" 
+              ms-duplex="ct"></textarea>
+    <p>
+        <a href="##" class="comment" 
+           ms-click="post($event)">发表评论</a>
+    </p>
+</div>
