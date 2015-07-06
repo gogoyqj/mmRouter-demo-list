@@ -8,6 +8,6 @@
 
 4，常见问题，请看 & https://github.com/RubyLouvre/mmRouter/issues/71
 
-5，用r.js和并代码，略麻烦，如果未显式的require代码，则需要在合并过程将controller和template合并
+5，用r.js和并代码，略麻烦，如果未显式的require代码，则需要在合并过程将controller和template合并 & https://github.com/RubyLouvre/avalon.oniui/issues/667
 
 6，commonjs规范的是基于fekit生成环境，在其他的commonjs开发工具下应该也可以运行
