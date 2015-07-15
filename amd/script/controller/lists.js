@@ -24,19 +24,22 @@ define([], function() {
             avalon.log("leave list")
         }
         // 进入视图
-        $ctrl.$onEnter = function(params) {
+        // 进入视图
+        $ctrl.$onEnter = function(params, rs) {
             lists.currentPage = params.pageId !== "" ? params.pageId : 0
-            return avalon.ajax({
-                url: "api/data.php",
-                data: {
-                    action: "list",
-                    pageId: lists.currentPage
-                },
-                dataType: "json",
-                success: function(list) {
-                    lists.blogs = list
+            setTimeout(function() {
+                var arr = []
+                while(arr.length < 10) {
+                    arr.push({
+                        id: arr.length + 10 * lists.currentPage,
+                        title: "从前有座山的故事"
+                    })
                 }
-            })
+                lists.blogs = arr
+                rs()
+            }, 200)
+            return false
+        })
         }
         // 视图渲染后，意思是avalon.scan完成
         $ctrl.$onRendered = function() {}

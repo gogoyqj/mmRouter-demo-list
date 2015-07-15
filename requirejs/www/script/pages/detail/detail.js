@@ -1,4 +1,4 @@
-(function() {
+define([], function() {
     var cache = {}
     var detail = avalon.define("detail", function(vm) {
         vm.title = ""
@@ -21,11 +21,10 @@
         }
     })
 
-    exports.controller = avalon.controller(function($ctrl) {
+    return avalon.controller(function($ctrl) {
         // 视图渲染后，意思是avalon.scan完成
         $ctrl.$onRendered = function() {
         }
-        // 进入视图
         // 进入视图
         $ctrl.$onEnter = function(params, rs) {
             var blogId = params.blogId !== "" ? params.blogId : 0
@@ -49,4 +48,4 @@
         // 指定一个avalon.scan视图的vmodels，vmodels = $ctrl.$vmodels.concact(DOM树上下文vmodels)
         $ctrl.$vmodels = []
     })
-})()
+})

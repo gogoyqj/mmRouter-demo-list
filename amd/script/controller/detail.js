@@ -26,23 +26,23 @@ define([], function() {
         $ctrl.$onRendered = function() {
         }
         // 进入视图
-        $ctrl.$onEnter = function(params) {
+        // 进入视图
+        $ctrl.$onEnter = function(params, rs) {
             var blogId = params.blogId !== "" ? params.blogId : 0
             detail.comments = cache[blogId] || []
             detail.ct = ""
-            return avalon.ajax({
-                url: "api/data.php",
-                data: {
-                    action: "detail",
-                    blogId: blogId
-                },
-                dataType: "json",
-                success: function(json) {
-                    detail.title = json.title
-                    detail.blogId = json.blogId
-                    detail.content = "<p>" + json.content.split("。").join("。</p><p>") + "</p>"
+            setTimeout(function() {
+                var json = {
+                    title: '有趣的文章',
+                    blogId: parseInt(Math.random() * 100)
+                    , content: "从前有座山，山上有个庙，庙里有个老和尚再讲故事：从前有座山……"
                 }
-            })
+                detail.title = json.title
+                detail.blogId = json.blogId
+                detail.content = "<p>" + json.content.split("。").join("。</p><p>") + "</p>"
+                rs()
+            }, 200)
+            return false
         }
         // 对应的视图销毁前
         $ctrl.$onBeforeUnload = function() {}
