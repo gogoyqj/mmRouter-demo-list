@@ -4,7 +4,7 @@
         <title>文章单页应用</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="css/style.css">
     </head>
     <body 
           ms-controller="root">
@@ -13,6 +13,9 @@
     </body>
     <script src="script/avalon.js"></script>
     <script>
+        require.config({
+            baseUrl: "./script"
+        });
         require(["./route"], function(route) {
             route && route.init && route.init()
         })

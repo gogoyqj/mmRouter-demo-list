@@ -1,10 +1,4 @@
-* {
-    margin: 0;
-    padding: 0;
-}
-a {
-    text-decoration: none;
-}
+
 .layout {
     width: 320px;
     min-height: 480px;

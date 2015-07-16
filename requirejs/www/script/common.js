@@ -4,7 +4,7 @@ requirejs.config({
     map: {
         "*": {
             // "avalon": "avalon.shim" // 意为所有avalon都指向avalon.shim
-            'css': 'require-css/css'
+            "css": "require-css/css"
         }
     },
     shim: {

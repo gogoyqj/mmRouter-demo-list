@@ -24,7 +24,6 @@ define([], function() {
             avalon.log("leave list")
         }
         // 进入视图
-        // 进入视图
         $ctrl.$onEnter = function(params, rs) {
             lists.currentPage = params.pageId !== "" ? params.pageId : 0
             setTimeout(function() {
@@ -39,8 +38,8 @@ define([], function() {
                 rs()
             }, 200)
             return false
-        })
         }
+
         // 视图渲染后，意思是avalon.scan完成
         $ctrl.$onRendered = function() {}
         // 指定一个avalon.scan视图的vmodels，vmodels = $ctrl.$vmodels.concact(DOM树上下文vmodels)

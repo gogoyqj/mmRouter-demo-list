@@ -1,4 +1,4 @@
-(function() {
+define([], function() {
     var lists = avalon.define("lists", function(vm) {
         vm.blogs = []
         vm.totalPage = 9
@@ -18,7 +18,7 @@
         avalon.router.go("blog.list", {pageId: pageId})
     })
 
-    exports.controller = avalon.controller(function($ctrl) {
+    return avalon.controller(function($ctrl) {
         // 对应的视图销毁前
         $ctrl.$onBeforeUnload = function() {
             avalon.log("leave list")
@@ -39,9 +39,10 @@
             }, 200)
             return false
         }
+
         // 视图渲染后，意思是avalon.scan完成
         $ctrl.$onRendered = function() {}
         // 指定一个avalon.scan视图的vmodels，vmodels = $ctrl.$vmodels.concact(DOM树上下文vmodels)
         $ctrl.$vmodels = []
     })
-})()
+})
