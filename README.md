@@ -1,4 +1,4 @@
-** 需要服务器环境才能跑起来 & wamp 推荐【amd & require 数据接口现在是用php做的, commonjs need fekit】
+** 需要服务器环境才能跑起来【commonjs need fekit】
 
 1，打开页面看效果
 
@@ -11,3 +11,5 @@
 5，用r.js和并代码，略麻烦，如果未显式的require代码，则需要在合并过程将controller和template合并 & https://github.com/RubyLouvre/avalon.oniui/issues/667
 
 6，commonjs规范的是基于fekit生成环境，在其他的commonjs开发工具下应该也可以运行
+
+7，requirejs目录内有一个完整的打包方案
