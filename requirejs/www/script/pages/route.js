@@ -5,11 +5,11 @@ define(["oniui/tree/avalon.tree"], function() {
         })
 
         // 重写模板加载器，改为用text插件加载
-        avalon.state.templateLoader = function(url, resolve, reject, reason) {
-            avalon.require(["text!" + url], function(tpl) {
-                resolve(avalon.templateCache[url] = tpl)
-            })
-        }
+        // avalon.state.templateLoader = function(url, resolve, reject, reason) {
+        //     avalon.require(["text!" + url], function(tpl) {
+        //         resolve(avalon.templateCache[url] = tpl)
+        //     })
+        // }
         // 定义一个全局抽象状态，用来渲染通用不会改变的视图，比如header，footer
         avalon.state("blog", {
             url: "/",
