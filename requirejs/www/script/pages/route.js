@@ -14,6 +14,10 @@ define(["oniui/tree/avalon.tree"], function() {
         avalon.state("blog", {
             url: "/",
             abstract: true, // 抽象状态，不会对应到url上
+            // onEnter: function(rs, rj) {
+                // return false // 中断
+                // 可以在这里做一些权限判断
+            // },
             views: {
                 "": {
                     templateUrl: "pages/common/blog.html", // 指定模板地址
@@ -28,7 +32,7 @@ define(["oniui/tree/avalon.tree"], function() {
         }).state("blog.list", { // 定义一个子状态，对应url是 /{pageId}，比如/1，/2
             url: "{pageId}",
             // 可以按照state模块化，在state的onEnter回调里去load module
-            onEnter: function(params, rs, rj)    {
+            onEnter: function(pageId, rs, rj)    {
                 requirejs(["pages/lists/index"], function() {
                     rs()
                 })
