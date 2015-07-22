@@ -27,6 +27,13 @@ define(["oniui/tree/avalon.tree"], function() {
             }
         }).state("blog.list", { // 定义一个子状态，对应url是 /{pageId}，比如/1，/2
             url: "{pageId}",
+            // 可以按照state模块化，在state的onEnter回调里去load module
+            onEnter: function(params, rs, rj)    {
+                requirejs(["pages/lists/index"], function() {
+                    rs()
+                })
+                return false
+            },
             views: {
                 "": {
                     templateUrl: "pages/lists/list.html",
