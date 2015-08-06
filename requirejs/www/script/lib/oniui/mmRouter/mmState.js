@@ -71,6 +71,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function() {
         oldNodes: [],
         query: {}, // 从属于currentState
         popOne: function(chain, params, callback, notConfirmed) {
+            if(mmState._toParams !== params) return callback(false, {type: "abort"})
             var cur = chain.pop(), me = this
             if(!cur) return callback()
             // 阻止退出
@@ -89,6 +90,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function() {
             if(!cur._pending && cur.done) cur.done(success)
         },
         pushOne: function(chain, params, callback, _local, toLocals) {
+            if(mmState._toParams !== params) return callback(false, {type: "abort"})
             var cur = chain.shift(), me = this
             // 退出
             if(!cur) {
@@ -220,6 +222,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function() {
             callStateFunc("onUnload", this, fromState, toState)
             this.currentState = toState
             this.prevState = fromState
+            mmState._toParams = toParams
             if(info && avalon.history) avalon.history.updateLocation(info.path + info.query, avalon.mix({}, options, {silent: true}), !fromState && location.hash)
             callStateFunc("onBegin", this, fromState, toState)
             this.popOne(exitChain, toParams, function(success) {
@@ -423,7 +426,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function() {
      * @param opts.controllerUrl 指定默认view控制器的路径，适用于模块化开发，该情形下默认通过avalon.controller.loader去加载一个符合amd规范，并返回一个avalon.controller定义的对象，传入opts.params作参数
      * @param opts.controllerProvider 指定默认view控制器的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
      @param opts.viewCache 是否缓存这个模板生成的dom，设置会覆盖dom元素上的data-view-cache，也可以分别配置到views上每个单独的view上
-     * @param opts.views: 如果不写views属性,则默认view为""，对多个[ms-view]容器进行处理,每个对象应拥有template, templateUrl, templateProvider，可以给每个对象搭配一个controller||controllerUrl||controllerProvider属性
+     * @param opts.views: 如果不写views属性,则默认view【ms-view=""】为""，也可以通过指定一个viewname属性来配置【ms-view="viewname"】，对多个[ms-view]容器进行处理,每个对象应拥有template, templateUrl, templateProvider，可以给每个对象搭配一个controller||controllerUrl||controllerProvider属性
      *     views的结构为
      *<pre>
      *     {
@@ -435,10 +438,10 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function() {
      *     views的每个键名(keyname)的结构为viewname@statename，
      *         如果名字不存在@，则viewname直接为keyname，statename为opts.stateName
      *         如果名字存在@, viewname为match[0], statename为match[1]
-     * @param opts.views.template 指定当前模板，也可以为一个函数，传入opts.params作参数，
-     * @param opts.views.templateUrl 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
-     * @param opts.views.templateProvider 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
-     * @param opts.views.ignoreChange 用法同state.ignoreChange，只是针对的粒度更细一些，针对到具体的view
+     * @param opts.views.{viewname}.template 指定当前模板，也可以为一个函数，传入opts.params作参数，* @param opts.views.viewname.cacheController 是否缓存view的控制器，默认true
+     * @param opts.views.{viewname}.templateUrl 指定当前模板的路径，也可以为一个函数，传入opts.params作参数
+     * @param opts.views.{viewname}.templateProvider 指定当前模板的提供者，它可以是一个Promise，也可以为一个函数，传入opts.params作参数
+     * @param opts.views.{viewname}.ignoreChange 用法同state.ignoreChange，只是针对的粒度更细一些，针对到具体的view
      * @param {Function} opts.onBeforeEnter 切入某个state之前触发，this指向对应的state，如果return false则会中断并退出整个状态机
      * @param {Function} opts.onEnter 进入状态触发，可以返回false，或任意不为true的错误信息或一个promise对象，用法跟视图的$onEnter一致
      * @param {Function} onEnter.params 视图所属的state的参数
@@ -679,12 +682,15 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function() {
                 "template,templateUrl,templateProvider,controller,controllerUrl,controllerProvider,viewCache".replace(/\w+/g, function(prop) {
                     copyTemplateProperty(view, me, prop)
                 })
-                this.views = {
-                    "": view
-                }
+                var viewname = "viewname" in this ? this.viewname : ""
+                this.views = {}
+                this.views[viewname] = view
             }
-            var views = {}
-            avalon.each(this.views, function(name, view) {
+            var views = {},
+                viewsIsArray = this.views instanceof Array // 如果是一个数组
+            
+            avalon.each(this.views, function(maybeName, view) {
+                var name = viewsIsArray ? view.name || "" : maybeName // 默认缺省
                 if (name.indexOf("@") < 0) {
                     name += "@" + (parent ? parent.stateName || "" : "")
                 }
@@ -828,18 +834,20 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function() {
     /*
      * @interface avalon.controller 给avalon.state视图对象配置控制器
      * @param name 控制器名字
-     * @param {Function} factory 控制器
-     * @param {Object} factory.$ctrl 实际生成的控制器对象
-     * @param {Function} factory.$onBeforeUnload 该视图被卸载前触发，return false可以阻止视图卸载，并阻止跳转
-     * @param {Function} factory.$onEnter 给该视图加载数据，可以返回false，或任意不为true的错误信息或一个promise对象，传递3个参数
-     * @param {Function} factory.$onEnter.params 视图所属的state的参数
-     * @param {Function} factory.$onEnter.resolve $onEnter return false的时候，进入同步等待，直到手动调用resolve
-     * @param {Function} factory.$onEnter.reject 数据加载失败，调用
-     * @param {Function} factory.$onRendered 视图元素scan完成之后，调用
+     * @param {Function} factory 控制器函数，传递一个内部生成的控制器对象作为参数
+     * @param {Object} factory.arguments[0] $ctrl 控制器的第一个参数：实际生成的控制器对象
+     * @param {Object} $ctrl.$vmodels 给视图指定一个scan的vmodels数组，实际scan的时候$vmodels.concat(dom树上下文继承的vmodels)
+     * @param {Function} $ctrl.$onBeforeUnload 该视图被卸载前触发，return false可以阻止视图卸载，并阻止跳转
+     * @param {Function} $ctrl.$onEnter 给该视图加载数据，可以返回false，或任意不为true的错误信息或一个promise对象，传递3个参数
+     * @param {Object} $ctrl.$onEnter.arguments[0] params第一个参数：视图所属的state的参数
+     * @param {Function} $ctrl.$onEnter.arguments[1] resolve $onEnter 第二个参数：return false的时候，进入同步等待，直到手动调用resolve
+     * @param {Function} $ctrl.$onEnter.arguments[2] reject 第三个参数：数据加载失败，调用
+     * @param {Function} $ctrl.$onRendered 视图元素scan完成之后，调用
      */
     avalon.controller = function() {
         var first = arguments[0],
             second = arguments[1]
+        if(first && (first instanceof _controller)) return first
         var $ctrl = _controller()
         if(avalon.isFunction(first)) {
             first($ctrl)
