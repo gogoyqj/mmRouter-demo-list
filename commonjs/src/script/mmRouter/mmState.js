@@ -3,7 +3,6 @@ require("./mmRouter");
 
 module.exports = (
 function () {
-    define(["../mmPromise/mmPromise", "./mmRouter"], function() {
 //重写mmRouter中的route方法     
     avalon.router.route = function(method, path, query, options) {
         path = path.trim()
@@ -1023,6 +1022,5 @@ function () {
                     reject(reason)
                 })
     }
-})
 }
 )();
