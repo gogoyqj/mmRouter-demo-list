@@ -1,8 +1,9 @@
 (function() {
-    var blog = avalon.define("blog", function(vm) {
+    var blog = avalon.define({
+        $id: "blog"
     })
 
-   exports.controller = avalon.controller(function($ctrl) {
+    exports.controller = avalon.controller(function($ctrl) {
         // 视图渲染后，意思是avalon.scan完成
         $ctrl.$onRendered = function() {
         }

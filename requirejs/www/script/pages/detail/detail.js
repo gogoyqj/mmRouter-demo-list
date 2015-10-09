@@ -1,21 +1,22 @@
 define([], function() {
     var cache = {}
-    var detail = avalon.define("detail", function(vm) {
-        vm.title = ""
-        vm.content = ""
-        vm.blogId = 0
-        vm.comments = []
-        vm.ct = ""
-        vm.comment = function(e) {
+    var detail = avalon.define({
+        $id: "detail",
+        title: "",
+        content: "",
+        blogId: 0,
+        comments: [],
+        ct: "",
+        comment: function(e) {
             e.preventDefault()
             avalon.router.go("blog.detail.comment", mmState.currentState.params)
-        }
-        vm.post = function(e) {
+        },
+        post: function(e) {
             e.preventDefault()
-            if(vm.ct) {
-                cache[vm.blogId] = cache[vm.blogId] || []
-                cache[vm.blogId].push(vm.ct)
-                vm.comments.push(vm.ct)
+            if(detail.ct) {
+                cache[detail.blogId] = cache[detail.blogId] || []
+                cache[detail.blogId].push(detail.ct)
+                detail.comments.push(detail.ct)
             }
             avalon.router.go("blog.detail", mmState.currentState.params, {confirmed: true})
         }

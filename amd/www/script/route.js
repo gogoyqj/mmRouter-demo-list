@@ -1,7 +1,8 @@
 define(["./mmRouter/mmState", "./mmRequest/mmRequest", "./animation/avalon.animation"], function() {
     // 定义一个顶层的vmodel，用来放置全局共享数据
-    var root = avalon.define("root", function(vm) {
-        vm.page = ""
+    var root = avalon.define({
+        $id: "root",
+        page: ""
     })
 
     // 定义一个全局抽象状态，用来渲染通用不会改变的视图，比如header，footer

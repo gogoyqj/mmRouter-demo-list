@@ -1,8 +1,18 @@
-define(["oniui/tree/avalon.tree"], function() {
+define(["avalon", "oniui/mmRouter/mmState"], function() {
         // 定义一个顶层的vmodel，用来放置全局共享数据
-        var root = avalon.define("root", function(vm) {
-            vm.page = ""
+        var root = avalon.define({
+            page : "",
+            $id: "root",
+
+            $opt: {
+                multiple: true,
+                data: []
+            },
+
+            source: []
         })
+
+        // root.$opt.$source = root.source
 
         // 重写模板加载器，改为用text插件加载
         // avalon.state.templateLoader = function(url, resolve, reject, reason) {
@@ -52,7 +62,8 @@ define(["oniui/tree/avalon.tree"], function() {
             views: {
                 "": {
                     templateUrl: "pages/detail/detail.html",
-                    controllerUrl: "pages/detail/detail"
+                    controllerUrl: "pages/detail/detail",
+                    cacheController: false
                 }
             }
         }).state("blog.detail.comment", {
