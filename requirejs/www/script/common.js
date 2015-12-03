@@ -17,7 +17,7 @@ requirejs.config({
     },
     paths: {
         "avalon": "avalon.shim", // 跟map上的配置实现同样的效果
-        "pages": "../pages/"
+        "pages": "../pages"
     },
     pragmasOnSave: {
         excludeRequireCss: true
