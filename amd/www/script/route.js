@@ -24,7 +24,14 @@ define(["./mmRouter/mmState", "./mmRequest/mmRequest", "./animation/avalon.anima
         url: "{pageId}",
         views: {
             "": {
-                templateUrl: "./script/template/list.html",
+                // templateUrl: "./script/template/list.html",
+                templateProvider: function () {
+                    return new Promise(function(rs, rj) {
+                        require(["text!./template/list.html"], function (tpl) {
+                            rs(tpl)
+                        })
+                    })
+                },
                 controllerUrl: "./controller/lists.js",
                 ignoreChange: function(type) {
                     return !!type

@@ -11,6 +11,9 @@ define([], function() {
         next: function(e) {
             e.preventDefault()
             lists.currentPage++
+        },
+        obj: {
+            arr: []
         }
     })
 
@@ -35,6 +38,9 @@ define([], function() {
                     })
                 }
                 lists.blogs = arr
+                lists.obj = {
+                    arr: [{name: 250}]
+                }
                 rs()
             }, 200)
             return false

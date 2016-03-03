@@ -182,7 +182,7 @@ function () {
             var query = query ? queryToString(query) : '', hash = url.replace(placeholder, function (mat) {
                     var key = mat.replace(/[\{\}]/g, '').split(':');
                     key = key[0] ? key[0] : key[1];
-                    return params[key] || '';
+                    return key in params ? params[key] : ''
                 }).replace(/^\//g, '');
             return {
                 path: hash,
