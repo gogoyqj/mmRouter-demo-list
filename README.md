@@ -15,3 +15,6 @@
 7，requirejs目录内有一个完整的打包方案
 
 8，webpack打包的问题，https://github.com/gogoyqj/mmRouter-demo-list/issues/2
+
+
+9，<a href="https://github.com/gogoyqj/avalon-sublime-snippet"><font color="red">sublime 碎片</font></a>
