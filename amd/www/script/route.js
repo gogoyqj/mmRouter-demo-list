@@ -22,30 +22,10 @@ define(["./mmRouter/mmState", "./mmRequest/mmRequest", "./animation/avalon.anima
         }
     }).state("blog.list", { // 定义一个子状态，对应url是 /{pageId}，比如/1，/2
         url: "{pageId}",
-        views: {
-            "": {
-                // templateUrl: "./script/template/list.html",
-                templateProvider: function () {
-                    return new Promise(function(rs, rj) {
-                        require(["text!./template/list.html"], function (tpl) {
-                            rs(tpl)
-                        })
-                    })
-                },
-                controllerUrl: "./controller/lists.js",
-                ignoreChange: function(type) {
-                    return !!type
-                } // url通过{}配置的参数变量发生变化的时候是否通过innerHTML重刷ms-view内的DOM，默认会，如果你做的是翻页这种应用，建议使用例子内的配置，把数据更新到vmodel上即可
-            }
-        }
+        stateUrl: "./controller/stateList"
     }).state("blog.detail", { // 定义一个子状态，对应url是 /detail/{blogId}，比如/detail/1。/detail/2
         url: "detail/{blogId}",
-        views: {
-            "": {
-                templateUrl: "./script/template/detail.html",
-                controllerUrl: "./controller/detail.js"
-            }
-        }
+        stateUrl: "./controller/stateDetail"
     }).state("blog.detail.comment", {
         views: {
             "": {

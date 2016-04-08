@@ -41,31 +41,10 @@ define(["avalon", "oniui/mmRouter/mmState"], function() {
             }
         }).state("blog.list", { // 定义一个子状态，对应url是 /{pageId}，比如/1，/2
             url: "{pageId}",
-            // 可以按照state模块化，在state的onEnter回调里去load module
-            onEnter: function(pageId, rs, rj)    {
-                requirejs(["pages/lists/index"], function() {
-                    rs()
-                })
-                return false
-            },
-            views: {
-                "": {
-                    templateUrl: "pages/lists/list.html",
-                    controllerUrl: "pages/lists/lists",
-                    ignoreChange: function(type) {
-                        return !!type
-                    } // url通过{}配置的参数变量发生变化的时候是否通过innerHTML重刷ms-view内的DOM，默认会，如果你做的是翻页这种应用，建议使用例子内的配置，把数据更新到vmodel上即可
-                }
-            }
+            stateUrl: "pages/stateList"
         }).state("blog.detail", { // 定义一个子状态，对应url是 /detail/{blogId}，比如/detail/1。/detail/2
             url: "detail/{blogId}",
-            views: {
-                "": {
-                    templateUrl: "pages/detail/detail.html",
-                    controllerUrl: "pages/detail/detail",
-                    cacheController: false
-                }
-            }
+            stateUrl: "pages/stateDetail"
         }).state("blog.detail.comment", {
             views: {
                 "": {
