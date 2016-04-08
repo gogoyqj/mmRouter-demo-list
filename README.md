@@ -13,3 +13,8 @@
 6，commonjs规范的是基于fekit生成环境，在其他的commonjs开发工具下应该也可以运行
 
 7，requirejs目录内有一个完整的打包方案
+
+8，webpack打包的问题，https://github.com/gogoyqj/mmRouter-demo-list/issues/2
+
+
+9，<a href="https://github.com/gogoyqj/avalon-sublime-snippet"><font color="red">sublime 碎片</font></a>
