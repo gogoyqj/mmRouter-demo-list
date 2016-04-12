@@ -1,7 +1,7 @@
 /**
  * verson 0.9
  */
-define(["../mmPromise/mmPromise", "./mmRouter"], function () {
+define(["../mmPromise/mmPromise", "../mmRouter/mmRouter"], function () {
 //重写mmRouter中的route方法     
     avalon.router.route = function (method, path, query, options) {
         path = path.trim()

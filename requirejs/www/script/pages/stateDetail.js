@@ -1,11 +1,10 @@
-define([], function() {
+define(["avalon", "text!./detail/detail.html", "./detail/detail"], function(avalon, tpl, ctrl) {
     // do something
     return {
         views: {
             "": {
-                templateUrl: "pages/detail/detail.html",
-                controllerUrl: "pages/detail/detail",
-                cacheController: false
+                template: tpl,
+                controller: ctrl
             }
         }
     }    

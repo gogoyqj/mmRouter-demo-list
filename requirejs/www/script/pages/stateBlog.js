@@ -1,9 +1,10 @@
-define([], function() {
+define(["avalon", "text!./common/blog.html", "./common/blog"], function(avalon, tpl, ctrl) {
+    // do something
     return {
         views: {
             "": {
-                template: require("../template/blog.html"), // 指定模板地址
-                controller: require("../controller/blog.js") // 指定控制器地址
+                template: tpl, // 指定模板地址
+                controller: ctrl // 指定控制器地址
             },
             "footer@": { // 视图名字的语法请仔细查阅文档
                 template: function() {

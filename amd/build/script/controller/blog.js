@@ -1,5 +1,6 @@
 define([], function() {
-    var blog = avalon.define("blog", function(vm) {
+    var blog = avalon.define({
+        $id: "blog"
     })
 
     return avalon.controller(function($ctrl) {

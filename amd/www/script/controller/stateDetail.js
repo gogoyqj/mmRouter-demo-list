@@ -1,10 +1,10 @@
-define(["avalon"], function() {
+define(["avalon", "text!../template/detail.html", "./detail"], function(avalon, tpl, ctrl) {
     // do something
     return {
         views: {
             "": {
-                templateUrl: "./script/template/detail.html",
-                controllerUrl: "./controller/detail.js"
+                template: tpl,
+                controller: ctrl
             }
         }
     }    

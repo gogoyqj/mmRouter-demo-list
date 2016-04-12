@@ -9,17 +9,7 @@ define(["./mmRouter/mmState", "./mmRequest/mmRequest", "./animation/avalon.anima
     avalon.state("blog", {
         url: "/",
         abstract: true, // 抽象状态，不会对应到url上
-        views: {
-            "": {
-                templateUrl: "./script/template/blog.html", // 指定模板地址
-                controllerUrl: "./controller/blog.js" // 指定控制器地址
-            },
-            "footer@": { // 视图名字的语法请仔细查阅文档
-                template: function() {
-                    return "<div style=\"text-align:center;\">this is footer</div>"
-                } // 指定一个返回字符串的函数来获取模板
-            }
-        }
+        stateUrl: "./controller/stateBlog"
     }).state("blog.list", { // 定义一个子状态，对应url是 /{pageId}，比如/1，/2
         url: "{pageId}",
         stateUrl: "./controller/stateList"

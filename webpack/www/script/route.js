@@ -4,37 +4,51 @@ define(["./mmRouter/mmState", "./mmRequest/mmRequest", "./animation/avalon.anima
         $id: "root",
         page: ""
     })
-
+    // 提取chuncklist
+    var chunkIds = __webpack_require__.e.toString().match(/\(\{[^\}]+\}\[[a-zA-Z]+\]\|\|[a-zA-Z]+\)/g)
+    chunkIds = chunkIds && chunkIds[0].match(/\{[^\}]+\}/g) || "{}"
+    chunkIds = eval("(" + chunkIds + ")") || {}
     avalon.controller.loader = function (url, callback) {
-        // 没有错误回调...
-        function wrapper($ctrl) {
-            callback && callback($ctrl)
-        }
-        require([url], wrapper)
+        // var chunkId = url
+        // for (var id in chunkIds) {
+        //     if (chunkIds[id] == url) {
+        //         chunkId = id
+        //         break
+        //     }
+        // }
+        // if (!(chunkId >= 0)) throw Error("找不到" + url)
+        // // 没有错误回调...
+        // function wrapper($ctrl) {
+        //     var loaded = __webpack_require__.c
+        //     if (loaded[chunkId]) {
+        //         // debugger
+        //     }
+        // }
+        // __webpack_require__.e(chunkId, wrapper)
+        return require(url)
     }
-
     // 定义一个全局抽象状态，用来渲染通用不会改变的视图，比如header，footer
     avalon.state("blog", {
         url: "/",
         abstract: true, // 抽象状态，不会对应到url上
-        stateUrl: "./states/blog"
+        stateUrl: "blog"
     }).state("blog.list", { // 定义一个子状态，对应url是 /{pageId}，比如/1，/2
         url: "{pageId}",
-        stateUrl: "./states/list"
+        stateUrl: "list"
     }).state("blog.detail", { // 定义一个子状态，对应url是 /detail/{blogId}，比如/detail/1。/detail/2
         url: "detail/{blogId}",
-        stateUrl: "./states/detail"
+        stateUrl: "detail"
     }).state("blog.detail.comment", {
         views: {
             "": {
-                templateUrl: "./script/template/comment.html"
+                template: require("./template/comment.html")
             }
         }
     })
 
     avalon.state.config({
         onError: function() {
-            console.log(arguments)
+            console.log("错误信息：" + arguments[0].message)
         }, // 强烈打开错误配置
         onLoad: function() {
             root.page = mmState.currentState.stateName.split(".")[1]

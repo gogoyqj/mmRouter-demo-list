@@ -1,16 +1,19 @@
 define([], function() {
-    var lists = avalon.define("lists", function(vm) {
-        vm.blogs = []
-        vm.totalPage = 9
-        vm.currentPage = 0
-
-        vm.pre = function(e) {
+    var lists = avalon.define({
+        $id: "lists",
+        blogs: [],
+        totalPage: 9,
+        currentPage: 0,
+        pre: function(e) {
             e.preventDefault()
-            vm.currentPage--
-        }
-        vm.next = function(e) {
+            lists.currentPage--
+        },
+        next: function(e) {
             e.preventDefault()
-            vm.currentPage++
+            lists.currentPage++
+        },
+        obj: {
+            arr: []
         }
     })
 
@@ -35,6 +38,9 @@ define([], function() {
                     })
                 }
                 lists.blogs = arr
+                lists.obj = {
+                    arr: [{name: 250}]
+                }
                 rs()
             }, 200)
             return false

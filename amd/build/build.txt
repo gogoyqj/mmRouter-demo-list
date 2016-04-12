@@ -8,3 +8,16 @@ script/mmRouter/mmState.js
 script/mmRequest/mmRequest.js
 script/animation/avalon.animation.js
 script/route.js
+script/text.js
+
+script/controller/stateDetail.js
+----------------
+text!template/detail.html
+script/controller/detail.js
+script/controller/stateDetail.js
+
+script/controller/stateList.js
+----------------
+text!template/list.html
+script/controller/lists.js
+script/controller/stateList.js

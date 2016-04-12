@@ -1,4 +1,4 @@
-define(["avalon", "oniui/mmRouter/mmState"], function() {
+define(["avalon", "lib/oniui/mmRouter/mmState", "text!pages/comment/comment.html"], function(avalon, x, commentTpl) {
         // 定义一个顶层的vmodel，用来放置全局共享数据
         var root = avalon.define({
             page : "",
@@ -28,17 +28,7 @@ define(["avalon", "oniui/mmRouter/mmState"], function() {
                 // return false // 中断
                 // 可以在这里做一些权限判断
             // },
-            views: {
-                "": {
-                    templateUrl: "pages/common/blog.html", // 指定模板地址
-                    controllerUrl: "pages/common/blog" // 指定控制器地址
-                },
-                "footer@": { // 视图名字的语法请仔细查阅文档
-                    template: function() {
-                        return "<div style=\"text-align:center;\">this is footer</div>"
-                    } // 指定一个返回字符串的函数来获取模板
-                }
-            }
+            stateUrl: "pages/stateBlog"
         }).state("blog.list", { // 定义一个子状态，对应url是 /{pageId}，比如/1，/2
             url: "{pageId}",
             stateUrl: "pages/stateList"
@@ -48,7 +38,7 @@ define(["avalon", "oniui/mmRouter/mmState"], function() {
         }).state("blog.detail.comment", {
             views: {
                 "": {
-                    templateUrl: "pages/comment/comment.html"
+                    template: commentTpl
                 }
             }
         })

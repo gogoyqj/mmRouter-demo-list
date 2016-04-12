@@ -14,7 +14,16 @@
     //buildCSS: false,
     modules: [
         {
-            name: "route"
+            name: "route",
+            include: ["text"]
+        },
+        {
+            name: "controller/stateDetail",
+            exclude: ["text"]
+        },
+        {
+            name: "controller/stateList",
+            exclude: ["text"]
         }
     ]
 })
