@@ -24,27 +24,14 @@ define(["./mmRouter/mmState", "./mmRequest/mmRequest", "./animation/avalon.anima
     })
 
     avalon.controller.loader = function (url, callback) {
-        var loader = {
-            './blog': function () {
-                require.ensure(['./blog'], function () {
-                    callback(require('./blog'))
-                })
-            },
-            './list': function () {
-                require.ensure(["./list"], function (r) {
-                    callback(require('./list'))
-                })
-            },
-            './detail': function () {
-                require.ensure(["./detail"], function (r) {
-                    callback(require('./detail'))
-                })
-            }
-        }
-        if (loader[url]) {
-            loader[url]()
+        if (url.join) {
+            __webpack_require__.e(url[1], function (r) {
+                callback(r(url[0]))
+            })
         } else {
-            throw Error("未指定的" + url)
+            var msg = url + '没有打包进来'
+            window.console && console.log(msg)
+            throw Error(msg)
         }
     }
 

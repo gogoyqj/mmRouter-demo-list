@@ -33,6 +33,8 @@ function makeConf(options){
 
     var config = {
         entry: {
+            "detail": ["script/detail"],
+            "list"  : ["script/list"],
             "route" : ["route", "script/blog"],
             "lib"   : ['avalon', 'mmPromise', 'script/avalon.getModel.js', 'mmRequest', 'mmState', 'Animation']
         },
@@ -71,6 +73,7 @@ function makeConf(options){
                 minChunks: Infinity,
                 filename: "build/script/lib.js"
             }),
+            new StateUrlCompilationPlugin({})
         ],
         devServer: {
             stats: {
