@@ -7,6 +7,7 @@ var webpack = require('webpack');
 
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
+var StateUrlCompilationPlugin = require('./StateUrlCompilationPlugin')
 
 var excludeFromStats = [
     /node_modules[\\\/]/,
@@ -32,11 +33,10 @@ function makeConf(options){
 
     var config = {
         entry: {
-            route : 'route',
-            blog  : 'script/states/blog',
-            detail: 'script/states/detail',
-            list  : 'script/states/list',
-            lib   : ['avalon', 'mmPromise', 'script/avalon.getModel.js', 'mmRequest', 'mmState', 'Animation']
+            "detail": ['route', 'script/blog', 'script/detail'],
+            "list"  : ['route', 'script/blog', 'script/list'],
+            "route" : ["route", "script/blog"],
+            "lib"   : ['avalon', 'mmPromise', 'script/avalon.getModel.js', 'mmRequest', 'mmState', 'Animation']
         },
         output: {
             path: path.resolve('./'),
@@ -54,16 +54,12 @@ function makeConf(options){
         module: {
             noParse: ['avalon', 'script/avalon.new', 'node_modules'],
             loaders: [
-                {
-                    test: /\.html/,
-                    loader: 'html',
-                    exclude: /.(ex|doc)[0-9]*\.html/,
-                },
-                {
-                    test: /\.css/,
-                    loaders: ['style','css?minimize!autoprefixer']
-                }
-            ]
+                {test: /\.css$/, loader: 'style-loader!css-loader'},
+                {test: /\.html$/, loader: 'html', exclude: [/.(ex|doc)[0-9]*\.html/]}
+            ],
+            // preLoaders: [
+            //     {test: /\.js$/, loader: "amdcss-loader"}
+            // ]
         },
         plugins: [
             new ExtractTextPlugin('build/css/[name].css',{
@@ -74,8 +70,16 @@ function makeConf(options){
             }),
             new webpack.optimize.CommonsChunkPlugin({
                 name: "lib", 
+                minChunks: Infinity,
                 filename: "build/script/lib.js"
-            })
+            }),
+            new webpack.optimize.CommonsChunkPlugin({
+                name: "route", 
+                minChunks: Infinity,
+                chunks: ["route", "detail", "list"],
+                filename: "build/script/route.js"
+            }),
+            new StateUrlCompilationPlugin({})
         ],
         devServer: {
             stats: {

@@ -1,4 +1,5 @@
 define([], function() {
+    console.log(2)
     var lists = avalon.define({
         $id: "lists",
         blogs: [],
