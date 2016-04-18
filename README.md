@@ -52,6 +52,24 @@ requirejs打包：r.js
 
 webpack打包：StateUrlCompilationPlugin[在本项目的webpack目录下获取]
 
+重写avalon.controller.loader
+
+```
+    avalon.controller.loader = function (url, callback) {
+        if (url.join) {
+            __webpack_require__.e(url[1], function (r) {
+                callback(r(url[0]))
+            })
+        } else {
+            var msg = url + '没有打包进来'
+            window.console && console.log(msg)
+            throw Error(msg)
+        }
+    }
+```
+
+webpack.config配置
+
 ```
 'use strict';
 
