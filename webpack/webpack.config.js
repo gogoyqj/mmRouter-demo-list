@@ -33,8 +33,6 @@ function makeConf(options){
 
     var config = {
         entry: {
-            "detail": ['route', 'script/blog', 'script/detail'],
-            "list"  : ['route', 'script/blog', 'script/list'],
             "route" : ["route", "script/blog"],
             "lib"   : ['avalon', 'mmPromise', 'script/avalon.getModel.js', 'mmRequest', 'mmState', 'Animation']
         },
@@ -73,13 +71,6 @@ function makeConf(options){
                 minChunks: Infinity,
                 filename: "build/script/lib.js"
             }),
-            new webpack.optimize.CommonsChunkPlugin({
-                name: "route", 
-                minChunks: Infinity,
-                chunks: ["route", "detail", "list"],
-                filename: "build/script/route.js"
-            }),
-            new StateUrlCompilationPlugin({})
         ],
         devServer: {
             stats: {
