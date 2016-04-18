@@ -12,7 +12,9 @@
 
 requirejs和webpack版本都支持打包以及按需加载
 
-requirejs打包：r.js
+###requirejs打包：r.js
+
+build.js配置
 
 ```
 ({
@@ -50,7 +52,7 @@ requirejs打包：r.js
 ```
 
 
-webpack打包：StateUrlCompilationPlugin[在本项目的webpack目录下获取]
+###webpack打包：StateUrlCompilationPlugin[在本项目的webpack目录下获取]
 
 重写avalon.controller.loader
 
