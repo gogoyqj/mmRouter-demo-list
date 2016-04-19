@@ -26,7 +26,7 @@ StateUrlCompilationPlugin.prototype.apply = function(compiler) {
                     mdIds = []
                 cmodules.forEach(function(md) {
                     var id = md.id,
-                        file = md.identifier()
+                        file = md.identifier().replace(/\\/g, '\/')
                     for (stateUrl in stateUrls) {
                         var _stateUrl = stateUrl.replace(/[\.]+/g, '')
                         if (file.indexOf(_stateUrl) != -1 && stateUrls[stateUrl] == 1) {
