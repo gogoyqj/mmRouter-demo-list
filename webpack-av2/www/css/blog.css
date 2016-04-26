@@ -1,0 +1,94 @@
+
+.layout {
+    width: 320px;
+    min-height: 480px;
+    font-size: 13px;
+    overflow: hidden;
+    border: 10px solid #000; 
+    border-radius: 10px;
+}
+.blog{
+    width: 700px;
+}
+.oni-mmRouter-slide {
+    width: 300px;
+    padding: 10px;
+    float: left;
+}
+.list li {
+    line-height: 20px;
+    list-style: none;
+    margin: 2px 0;
+}
+.list li a {
+    color: #000;
+    text-decoration: none;
+}
+.rank {
+    float: left;
+    width: 20px;
+    height: 20px;
+    background: #ccc;
+    margin-right: 10px;
+    line-height: 20px;
+    text-align: center;
+    color: #fff;
+}
+.top {
+    background: lightblue;
+}
+.detail h5 {
+    text-align: center;
+    line-height: 40px;
+}
+.content {
+    text-indent: 26px;
+}
+.content p {
+    line-height: 18px;
+}
+.nav a{
+    text-decoration: none;
+}
+.comment {
+    float: right;
+}
+.comment-box {
+    margin: 4px 0;
+}
+.comments {
+    padding-top: 10px;
+}
+.page {
+    text-align: center;
+    padding: 5px 0;
+}
+.header {
+    background: #EA413C;
+    color: #fff;
+    height: 30px;
+    line-height: 30px;
+    padding-left: 14px;
+    font-size: 15px;
+}
+.nav {
+    height: 32px;
+}
+.nav li {
+    float: left;
+    width: 40px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    list-style: none;
+    font-size: 15px;
+}
+.nav a {
+    color: #b3b3b3;
+}
+.nav li.select a {
+    color: #EC5751;
+}
+.nav li.select {
+    border-bottom: 2px solid #EC5751;
+}
