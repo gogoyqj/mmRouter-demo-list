@@ -2,6 +2,6 @@
 
 #### 注意事项
 
-* ms-view="''" - 已经不能空了
+* 只支持avalon2
 
-* 
+* view.$onRendered 不再支持

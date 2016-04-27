@@ -461,7 +461,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
     avalon.directive('view', {
         priority: 2,
         parse: function(binding, num, vnode) {
-            vnode.props.voidtag = !!vnode.isVoidTag // 避免children被默认的覆盖
+            vnode.voidtag = !!vnode.isVoidTag // 避免children被默认的覆盖
             vnode.isVoidTag = true
             var currentState = mmState.currentState,
                 viewname = binding.expr.replace(/['"]+/g, "")
@@ -492,11 +492,11 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                 'vnode' + num + '.htmlVm            = __vmodel__',
                 'vnode' + num + '.viewname          = \'' + viewname + '\';' +
                 'vnode' + num + '.props["ms-html"]  = __viewTemplate;',
-                'vnode' + num + '.props["voidtag"]  = ' + vnode.props.voidtag + ';',
+                'vnode' + num + '.voidtag  = ' + vnode.voidtag + ';',
                 'vnode' + num + '.children          = avalon.__html;'].join('\n')+'\n'
         },
         diff: function (cur, pre, steps, name) {
-            cur.isVoidTag = cur.props.voidtag
+            cur.isVoidTag = cur.voidtag
             var curValue = cur.props['ms-html']
             var preValue = pre.props && pre.props['ms-html']
             if (curValue !== preValue) {
