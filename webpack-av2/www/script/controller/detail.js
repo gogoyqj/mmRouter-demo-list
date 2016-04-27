@@ -1,5 +1,5 @@
 define([], function() {
-    var cache = {}
+    var cache = window._cache = {}
     var detail = avalon.define({
         $id: "detail",
         title: "",
@@ -30,16 +30,16 @@ define([], function() {
         // 进入视图
         $ctrl.$onEnter = function(params, rs) {
             var blogId = params.blogId !== "" ? params.blogId : 0
-            detail.comments = cache[blogId] || []
-            detail.ct = ""
             setTimeout(function() {
                 var json = {
                     title: '有趣的文章',
-                    blogId: parseInt(Math.random() * 100)
-                    , content: "从前有座山，山上有个庙，庙里有个老和尚再讲故事：从前有座山……"
+                    blogId: blogId,
+                    content: "从前有座山，山上有个庙，庙里有个老和尚再讲故事：从前有座山……"
                 }
+                detail.ct = ""
                 detail.title = json.title
                 detail.blogId = json.blogId
+                detail.comments = cache[blogId] || []
                 detail.content = "<p>" + json.content.split("。").join("。</p><p>") + "</p>"
                 rs()
             }, 200)

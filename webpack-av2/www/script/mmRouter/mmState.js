@@ -477,16 +477,18 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
         })
     }
     if (avalon.directive) {
+        var viewMap = mmState.viewMap = {}
         setTimeout(function() {
             _root.watch("updateview", function(state, changeType) {
                 var local = state._local,
                     lastLocal = mmState._lastLocal,
-                    viewToRender = []
+                    viewToRender = [],
+                    nowKeys = {}
                 if (!lastLocal) {
                     for ( i in local) {
-                        var stateVM = avalon.vmodels[i]
-                        if (stateVM) {
-                            stateVM.__view = local[i].template
+                        var viewObj = viewMap[i]
+                        if (viewObj) {
+                            viewObj.template = local[i].template
                         }
                     }
                 } else {
@@ -494,16 +496,31 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                         if (!(i in lastLocal) || local[i] != lastLocal[i]) {
                             // 找到需要更新的view
                             viewToRender.push(i)
-                            var stateVM = avalon.vmodels[i]
-                            if (stateVM) {
-                                stateVM.__view = local[i].template
+                            var viewObj = viewMap[i]
+                            if (viewObj) {
+                                viewObj.template = local[i].template
                             }
                         }
+                        nowKeys[i] = 1
                     }
+                    for (var i in lastLocal) {
+                        if (i in nowKeys) continue
+                        console.log(i)
+                        viewToRender.push(i)
+                    }
+                }
+                if (!viewToRender.length) {
+                    // root vm reRender
+                    mmState.reRenderRoot && mmState.reRenderRoot()
+                } else {
+                    nowKeys = {}
+                    avalon.each(viewToRender, function(i, stateName) {
+                        
+                    })
                 }
             })
         })
-        avalon.directive("view", {
+        avalon.directive('view', {
             priority: 2,
             parse: function(binding, num, vnode) {
                 // if (vnode.props && vnode.props.statename == 'blog') debugger
@@ -521,19 +538,19 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                 var _currentState = _local && _local.state
                 var html = _local && _local.template || defaultHTML
                 if (_currentState) html = html.replace(/ ms\-view=/g, ' statename="' + _currentState.stateName  + '" ms-view=')
-                var stateVM = avalon.vmodels[viewname]
-                if (stateVM) {
-                    stateVM.__view = html
+                var viewObj = viewMap[viewname]
+                if (viewObj) {
+                    viewObj.template = html
                 } else {
-                    stateVM = avalon.define({
+                    viewObj = viewMap[viewname] = {
                         $id: viewname,
                         $nearlyId: mmState.undefine,
-                        __view: html
-                    });
+                        template: html
+                    };
                 }
-                var ret = ['var __stateVM =  avalon.vmodels["' + viewname + '"];',
-                    '__stateVM.$nearlyId = __vmodel__.$id;',
-                    'var htmlId = __stateVM.__view;',
+                var ret = ['var templateObj =  mmState.viewMap["' + viewname + '"];',
+                    'templateObj.$nearlyId = __vmodel__.$id;',
+                    'var htmlId = templateObj.template;',
                     'vnode' + num + '.htmlVm = __vmodel__',
                     'vnode' + num + '.props["ms-html"]  = htmlId;',
                     // 'vnode' + num + '.props.skipContent  = true;',
@@ -547,9 +564,9 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
             diff: function (cur, pre, steps, name) {
                 var curValue = cur.props['ms-html']
                 var preValue = pre.props && pre.props['ms-html']
-                cur.skipContent = false
+                // cur.skipContent = false
                 if (curValue !== preValue) {
-                    if (cur.props[name] !== preValue) {
+                    if (cur.props['ms-html'] !== preValue) {
                         var list = cur.change || (cur.change = [])
                         if (avalon.Array.ensure(list, this.update)) {
                             steps.count += 1

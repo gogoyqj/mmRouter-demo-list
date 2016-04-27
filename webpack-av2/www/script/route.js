@@ -4,7 +4,10 @@ define(["./mmRouter/mmState", "./mmRequest/mmRequest", "./animation/avalon.anima
         $id: "root",
         page: "",
         testData: "testData",
-        tpl: "<div>@testData</div>"
+        time: function() {
+            return new Date()
+        },
+        tpl: "{{@time()}}<br><div ms-controller=\"lists\">{{@currentPage}}</div>"
     })
     var lists = avalon.define({
         $id: "lists",

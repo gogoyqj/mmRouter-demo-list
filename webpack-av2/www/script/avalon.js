@@ -3370,7 +3370,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    if (hasWidget) {
 	                        str += 'if(!' + vnode + '.props.wid ){\n'
 	                    }
-	                    str += vnode + '.children = ' + wrap(parseView(el.children, num), num) + '\n'
+	                    str += 'if (!' + vnode + '.children || !' + vnode + '.children.length) ' + vnode + '.children = ' + wrap(parseView(el.children, num), num) + '\n'
 	                    if (hasIf) {
 	                        str += '}\n'
 	                    }
@@ -7506,6 +7506,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if(after.$id && before.$element){
 	        after.$element = before.$element
 	        after.$render = before.$render
+	    } else {
+	    	console.log(after)
 	    }
 	    return $vmodel
 	}
