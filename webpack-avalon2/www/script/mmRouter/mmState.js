@@ -368,288 +368,178 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
         })
         cacheQueue = null
     }
-    // 靠谱的解决方法
-    var bindingHandlers = avalon.bindingHandlers || {}
-    bindingHandlers.view = function (data, vmodel, ele) {
-        data.expr = "'" + (data.expr || "") + "'"
-        var vmodels = data.vmodels || vmodel
-        var currentState = mmState.currentState,
-                element = data.element || ele,
-                $element = avalon(element),
-                viewname = (data.value || data.expr || "").replace(/['"]+/g, ""),
-                comment = document.createComment("ms-view:" + viewname),
-                par = element.parentNode,
-                defaultHTML = element.innerHTML,
-                statename = $element.data("statename") || "",
-                parentState = getStateByName(statename) || _root,
-                currentLocal = {},
-                oldElement = element,
-                tpl = element.outerHTML
-        element.removeAttribute("ms-view") // remove right now
-        par.insertBefore(comment, element)
-        function update(firsttime, currentState, changeType) {
-            // node removed, remove callback
-            if (!document.contains(comment)) {
-                data = vmodels = element = par = comment = $element = oldElement = update = null
-                return !"delete from watch"
-            }
-            var definedParentStateName = $element.data("statename") || "",
-                    parentState = getStateByName(definedParentStateName) || _root,
-                    _local
-            if (viewname.indexOf("@") < 0)
-                viewname += "@" + parentState.stateName
-            _local = mmState.currentState._local && mmState.currentState._local[viewname]
-            if (firsttime && !_local || currentLocal === _local)
-                return
-            currentLocal = _local
-            var _currentState = _local && _local.state
-            // 缓存，如果加载dom上，则是全局配置，针对template还可以开一个单独配置
-            var cacheTpl = $element.data("viewCache"),
-                    lastCache = $element.data("currentCache")
-            if (_local) {
-                cacheTpl = (_local.viewCache === false ? false : _local.viewCache || cacheTpl) && (viewname + "@" + _currentState.stateName)
-            } else if (cacheTpl) {
-                cacheTpl = viewname + "@__default__"
-            }
-            // stateB->stateB，配置了参数变化不更新dom
-            if (_local && _currentState === currentState && _local.ignoreChange && _local.ignoreChange(changeType, viewname))
-                return
-            // 需要load和使用的cache是一份
-            if (cacheTpl && cacheTpl === lastCache)
-                return
-            compileNode(tpl, element, $element, _currentState)
-            var html = _local ? _local.template : defaultHTML,
-                    fragment
-            if (cacheTpl) {
-                if (_local) {
-                    _local.element = element
-                } else {
-                    mmState.currentState._local[viewname] = {
-                        state: mmState.currentState,
-                        template: defaultHTML,
-                        element: element
-                    }
-                }
-            }
-            avalon.clearHTML(element)
-            // oldElement = element
-            element.removeAttribute("ms-view")
-            element.setAttribute("ui-view", data.value || data.expr || "")
-            // 本次更新的dom需要用缓存
-            if (cacheTpl) {
-                // 已缓存
-                if (templateCache[cacheTpl]) {
-                    fragment = loadCache(cacheTpl)
-                    // 未缓存
-                } else {
-                    fragment = avalon.parseHTML(html)
-                }
-                element.appendChild(fragment)
-                // 更新现在使用的cache名字
-                $element.data("currentCache", cacheTpl)
-                if (templateCache[cacheTpl])
-                    return
-            } else {
-                element.innerHTML = html
-                $element.data("currentCache", false)
-            }
-            // default
-            if (!_local && cacheTpl)
-                $element.data("currentCache", cacheTpl)
-            avalon.each(getViewNodes(element), function (i, node) {
-                avalon(node).data("statename", _currentState && _currentState.stateName || "")
-            })
-            // merge上下文vmodels + controller指定的vmodels
-            avalon.scan(element, (_local && _local.vmodels || []).concat(vmodels || []))
-            // 触发视图绑定的controller的事件
-            if (_local && _local.$ctrl) {
-                _local.$ctrl.$onRendered && _local.$ctrl.$onRendered.apply(element, [_local])
-            }
-        }
-        update("firsttime")
-        _root.watch("updateview", function (state, changeType) {
-            return update.call(this, undefine, state, changeType)
-        })
+    // only for avalon 2
+    var viewMap = mmState.viewMap = {}
+    function mergeLocal(a, b) {
+        a.template = formateTemplate(a.state = b.state, b.template)
     }
-    if (avalon.directives) {
-        avalon.directive("view", {
-            init: bindingHandlers.view
-        })
+    // 处理模板的ms-view嵌套，注：不能处理多层嵌套
+    function formateTemplate(state, template) {
+        if (state) template = template.replace(/ ms\-view=/g, ' statename="' + state.stateName  + '" ms-view=')
+        return template
     }
-    if (avalon.directive) {
-        var viewMap = mmState.viewMap = {}
-        function mergeLocal(a, b) {
-            a.template = formateTemplate(a.state = b.state, b.template)
+    function forInLocal(obj, func) {
+        for (var i in obj) {
+            func(i, obj[i])
         }
-        // 处理模板的ms-view嵌套，注：不能处理多层嵌套
-        function formateTemplate(state, template) {
-            if (state) template = template.replace(/ ms\-view=/g, ' statename="' + state.stateName  + '" ms-view=')
-            return template
-        }
-        function forInLocal(obj, func) {
-            for (var i in obj) {
-                func(i, obj[i])
-            }
-        }
-        setTimeout(function() {
-            _root.watch("updateview", function(state, changeType) {
-                // 现在是全量更新...
-                var local = state._local, viewToRender = [], vmsObj = {}
-                forInLocal(local, function(i, v) {
-                    var viewObj = viewMap[i] = viewMap[i] || {}
-                    if (viewObj) {
-                        mergeLocal(viewObj, local[i])
-                    }
-                    viewToRender.push(i)
-                })
-                avalon.each(viewToRender, function(i, stateName) {
-                    var viewObj = viewMap[stateName]
-                    if (viewObj) {
-                        var nearlyId = viewObj.$nearlyId
-                        if (nearlyId) {
-                            vmsObj[nearlyId] = ''
-                        }
-                    }
-                })
-                forInLocal(vmsObj, function(vid) {
-                    avalon.batch(vid)
-                })
-                vmsObj = null
-
-            //         lastLocal = mmState._lastLocal,
-            //         viewToRender = [],
-            //         nowKeys = {}
-            //     if (!lastLocal) {
-            //         forInLocal(local, function(i, v) {
-            //             var viewObj = viewMap[i] = viewMap[i] || {}
-            //             if (viewObj) {
-            //                 mergeLocal(viewObj, local[i])
-            //             }
-            //         })
-            //     } else {
-            //         forInLocal(local, function(i, v) {
-            //             if (!(i in lastLocal) || local[i] != lastLocal[i]) {
-            //                 // 找到需要更新的view
-            //                 viewToRender.push(i)
-            //                 var viewObj = viewMap[i] = viewMap[i] || {}
-            //                 if (viewObj) {
-            //                     mergeLocal(viewObj, local[i])
-            //                 }
-            //             }
-            //             nowKeys[i] = 1
-            //         })
-            //         for (var i in lastLocal) {
-            //             if (i in nowKeys) continue
-            //             viewToRender.push(i)
-            //         }
-            //     }
-            //     nowKeys = null
-            //     if (!viewToRender.length) {
-            //         // root vm reRender
-            //         mmState.reRenderRoot && mmState.reRenderRoot()
-            //         console.log('need to render root')
-            //     } else {
-            //         var vmsObj = {}
-            //         avalon.each(viewToRender, function(i, stateName) {
-            //             var viewObj = viewMap[stateName]
-            //             if (viewObj) {
-            //                 var nearlyId = viewObj.$nearlyId
-            //                 if (nearlyId && !(nearlyId in vmsObj)) {
-            //                     vmsObj[nearlyId] = ''
-            //                 }
-            //             }
-            //         })
-            //         forInLocal(vmsObj, function(vid) {
-            //             avalon.batch(vid)
-            //         })
-            //         vmsObj = null
-            //     }
-            })
-        })
-        avalon.directive('view', {
-            priority: 2,
-            parse: function(binding, num, vnode) {
-                var currentState = mmState.currentState,
-                    viewname = binding.expr.replace(/['"]+/g, "")
-                if (viewname.indexOf("@") < 0)
-                    viewname += "@" + (getStateByName(vnode.props.statename || "") || _root).stateName
-                var _local = currentState && currentState._local && currentState._local[viewname],
-                    _currentState = _local && _local.state,
-                    html = formateTemplate(_currentState, _local && _local.template || vnode.template),
-                    viewObj = viewMap[viewname]
+    }
+    setTimeout(function() {
+        _root.watch("updateview", function(state, changeType) {
+            // 现在是全量更新...
+            var local = state._local, viewToRender = [], vmsObj = {}
+            forInLocal(local, function(i, v) {
+                var viewObj = viewMap[i] = viewMap[i] || {}
                 if (viewObj) {
-                    viewObj.template = html
-                } else {
-                    viewObj = viewMap[viewname] = {
-                        $id: viewname,
-                        $nearlyId: mmState.undefine,
-                        template: html
+                    mergeLocal(viewObj, local[i])
+                }
+                viewToRender.push(i)
+            })
+            avalon.each(viewToRender, function(i, stateName) {
+                var viewObj = viewMap[stateName]
+                if (viewObj) {
+                    var nearlyId = viewObj.$nearlyId
+                    if (nearlyId) {
+                        vmsObj[nearlyId] = ''
                     }
                 }
-                return [
-                    'var __viewname = "' + viewname + '";',
-                    'var __viewObj         =  mmState.viewMap[__viewname];',
-                    'var __currentState    = __viewObj.state || {};',
-                    'var __viewTemplate    = __viewObj.template;',
-                    'var __htmlFactoryObj  = avalon.htmlFactory(__viewTemplate,' + num + ');',
-                    'try{eval(" new function(){"+ __htmlFactoryObj.render +"}")}catch(e){};',
-                    'if (__currentState) vnode' + num + '.statename = __currentState.stateName;',
-                    '__viewObj.$nearlyId                = __vmodel__.$id;',
-                    'vnode' + num + '.props.skipContent = true;',
-                    'vnode' + num + '.htmlVm            = __vmodel__',
-                    'vnode' + num + '.viewname          = \'' + viewname + '\';' +
-                    'vnode' + num + '.props["ms-html"]  = __viewTemplate;',
-                    'vnode' + num + '.__useParseChild   = true;',
-                    'vnode' + num + '.children          = avalon.__html;'].join('\n')+'\n'
-            },
-            diff: function (cur, pre, steps, name) {
-                var curValue = cur.props['ms-html']
-                var preValue = pre.props && pre.props['ms-html']
-                cur.skipContent = false
-                if (curValue !== preValue) {
-                    if (cur.props['ms-html'] !== preValue) {
-                        var list = cur.change || (cur.change = [])
-                        if (avalon.Array.ensure(list, this.update)) {
-                            steps.count += 1
-                        }
-                    }
-                }
-            },
-            update: function (node, vnode) {
-                if (node.nodeType !== 1) {
-                    return
-                }
-                if (node.querySelectorAll) {
-                    var nodes = node.querySelectorAll('[avalon-events]')
-                    avalon.each(nodes, function (i, el) {
-                        avalon.unbind(el)
-                    })
-                } else {
-                    var nodes = node.getElementsByTagName('*')
-                    //IE6-7这样取所有子孙节点会混入注释节点
-                    avalon.each(nodes, function (i, el) {
-                        if (el.nodeType === 1 && el.getAttribute('avalon-events')) {
-                            avalon.unbind(i, el)
-                        }
-                    })
-                }
-                // 动画
-                if (node.className.indexOf('oni-mmRouter-slide') != -1) {
-                    compileNode(null, node, avalon(node), mmState.currentState)
-                }
-                avalon.clearHTML(node)
-                var fragment = document.createDocumentFragment()
-                vnode.children.forEach(function (c) {
-                    fragment.appendChild(avalon.vdomAdaptor(c, 'toDOM'))
-                })
-                node.appendChild(fragment)
-            }
+            })
+            forInLocal(vmsObj, function(vid) {
+                avalon.batch(vid)
+            })
+            vmsObj = null
+
+        //         lastLocal = mmState._lastLocal,
+        //         viewToRender = [],
+        //         nowKeys = {}
+        //     if (!lastLocal) {
+        //         forInLocal(local, function(i, v) {
+        //             var viewObj = viewMap[i] = viewMap[i] || {}
+        //             if (viewObj) {
+        //                 mergeLocal(viewObj, local[i])
+        //             }
+        //         })
+        //     } else {
+        //         forInLocal(local, function(i, v) {
+        //             if (!(i in lastLocal) || local[i] != lastLocal[i]) {
+        //                 // 找到需要更新的view
+        //                 viewToRender.push(i)
+        //                 var viewObj = viewMap[i] = viewMap[i] || {}
+        //                 if (viewObj) {
+        //                     mergeLocal(viewObj, local[i])
+        //                 }
+        //             }
+        //             nowKeys[i] = 1
+        //         })
+        //         for (var i in lastLocal) {
+        //             if (i in nowKeys) continue
+        //             viewToRender.push(i)
+        //         }
+        //     }
+        //     nowKeys = null
+        //     if (!viewToRender.length) {
+        //         // root vm reRender
+        //         mmState.reRenderRoot && mmState.reRenderRoot()
+        //         console.log('need to render root')
+        //     } else {
+        //         var vmsObj = {}
+        //         avalon.each(viewToRender, function(i, stateName) {
+        //             var viewObj = viewMap[stateName]
+        //             if (viewObj) {
+        //                 var nearlyId = viewObj.$nearlyId
+        //                 if (nearlyId && !(nearlyId in vmsObj)) {
+        //                     vmsObj[nearlyId] = ''
+        //                 }
+        //             }
+        //         })
+        //         forInLocal(vmsObj, function(vid) {
+        //             avalon.batch(vid)
+        //         })
+        //         vmsObj = null
+        //     }
         })
-    }
+    })
+    avalon.directive('view', {
+        priority: 2,
+        parse: function(binding, num, vnode) {
+            vnode.isVoidTag = true // 
+            var currentState = mmState.currentState,
+                viewname = binding.expr.replace(/['"]+/g, "")
+            if (viewname.indexOf("@") < 0)
+                viewname += "@" + (getStateByName(vnode.props.statename || "") || _root).stateName
+            var _local = currentState && currentState._local && currentState._local[viewname],
+                _currentState = _local && _local.state,
+                html = formateTemplate(_currentState, _local && _local.template || vnode.template),
+                viewObj = viewMap[viewname]
+            if (viewObj) {
+                viewObj.template = html
+            } else {
+                viewObj = viewMap[viewname] = {
+                    $id: viewname,
+                    $nearlyId: mmState.undefine,
+                    template: html
+                }
+            }
+            return [
+                'var __viewname = "' + viewname + '";',
+                'var __viewObj         =  mmState.viewMap[__viewname];',
+                'var __currentState    = __viewObj.state || {};',
+                'var __viewTemplate    = __viewObj.template;',
+                'var __htmlFactoryObj  = avalon.htmlFactory(__viewTemplate,' + num + ');',
+                'try{eval(" new function(){"+ __htmlFactoryObj.render +"}")}catch(e){};',
+                'if (__currentState) vnode' + num + '.statename = __currentState.stateName;',
+                '__viewObj.$nearlyId                = __vmodel__.$id;',
+                'vnode' + num + '.htmlVm            = __vmodel__',
+                'vnode' + num + '.viewname          = \'' + viewname + '\';' +
+                'vnode' + num + '.props["ms-html"]  = __viewTemplate;',
+                'vnode' + num + '.children          = avalon.__html;'].join('\n')+'\n'
+        },
+        diff: function (cur, pre, steps, name) {
+            cur.isVoidTag = true
+            var curValue = cur.props['ms-html']
+            var preValue = pre.props && pre.props['ms-html']
+            if (curValue !== preValue) {
+                if (cur.props['ms-html'] !== preValue) {
+                    var list = cur.change || (cur.change = [])
+                    if (avalon.Array.ensure(list, this.update)) {
+                        steps.count += 1
+                    }
+                }
+            }
+        },
+        update: function (node, vnode) {
+            if (node.nodeType !== 1) {
+                return
+            }
+            if (node.querySelectorAll) {
+                var nodes = node.querySelectorAll('[avalon-events]')
+                avalon.each(nodes, function (i, el) {
+                    avalon.unbind(el)
+                })
+            } else {
+                var nodes = node.getElementsByTagName('*')
+                //IE6-7这样取所有子孙节点会混入注释节点
+                avalon.each(nodes, function (i, el) {
+                    if (el.nodeType === 1 && el.getAttribute('avalon-events')) {
+                        avalon.unbind(i, el)
+                    }
+                })
+            }
+            // 动画
+            if (node.className.indexOf('oni-mmRouter-slide') != -1) {
+                compileNode(null, node, avalon(node), mmState.currentState)
+            }
+            avalon.clearHTML(node)
+            var fragment = document.createDocumentFragment()
+            vnode.children.forEach(function (c) {
+                fragment.appendChild(avalon.vdomAdaptor(c, 'toDOM'))
+            })
+            node.appendChild(fragment)
+        }
+    })
     function compileNode(tpl, element, $element, _currentState) {
         if ($element.hasClass("oni-mmRouter-slide")) {
             // 拷贝一个镜像
-            var copy = element.cloneNode(true)
+            var copy = element.cloneNode() // 不能深度拷贝
             copy.setAttribute("ms-skip", "true")
             avalon(copy).removeClass("oni-mmRouter-enter").addClass("oni-mmRouter-leave")
             avalon(element).addClass("oni-mmRouter-enter")

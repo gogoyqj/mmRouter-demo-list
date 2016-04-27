@@ -3370,7 +3370,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    if (hasWidget) {
 	                        str += 'if(!' + vnode + '.props.wid ){\n'
 	                    }
-	                    str += 'if (!' + vnode + '.__useParseChild) ' + vnode + '.children = ' + wrap(parseView(el.children, num), num) + '\n'
+	                    str += vnode + '.children = ' + wrap(parseView(el.children, num), num) + '\n'
 	                    if (hasIf) {
 	                        str += '}\n'
 	                    }
