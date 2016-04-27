@@ -1,5 +1,5 @@
 define([], function() {
-    var lists = avalon.vmodels.lists || avalon.define({
+    var lists = avalon.define({
         $id: "lists",
         blogs: [],
         totalPage: 9,

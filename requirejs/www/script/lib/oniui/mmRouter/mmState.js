@@ -395,7 +395,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
             if (firsttime && !_local || currentLocal === _local)
                 return
             currentLocal = _local
-            _currentState = _local && _local.state
+            var _currentState = _local && _local.state
             // 缓存，如果加载dom上，则是全局配置，针对template还可以开一个单独配置
             var cacheTpl = $element.data("viewCache"),
                     lastCache = $element.data("currentCache")

@@ -2,29 +2,7 @@ define(["./mmRouter/mmState", "./mmRequest/mmRequest", "./animation/avalon.anima
     // 定义一个顶层的vmodel，用来放置全局共享数据
     var root = avalon.define({
         $id: "root",
-        page: "",
-        testData: "testData",
-        time: function() {
-            return new Date()
-        },
-        tpl: "{{@time()}}<br><div ms-controller=\"lists\">{{@currentPage}}</div>"
-    })
-    var lists = avalon.define({
-        $id: "lists",
-        blogs: [],
-        totalPage: 9,
-        currentPage: 0,
-        pre: function(e) {
-            e.preventDefault()
-            lists.currentPage--
-        },
-        next: function(e) {
-            e.preventDefault()
-            lists.currentPage++
-        },
-        obj: {
-            arr: []
-        }
+        page: ""
     })
     // 定义一个全局抽象状态，用来渲染通用不会改变的视图，比如header，footer
     avalon.state("blog", {
