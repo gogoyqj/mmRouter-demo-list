@@ -501,7 +501,6 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                         }
                     }
                 }
-                console.log(viewToRender)
             })
         })
         avalon.directive("view", {
@@ -511,8 +510,8 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                 var currentState = mmState.currentState,
                     viewname = binding.expr.replace(/['"]+/g, ""),
                     defaultHTML = vnode.template,
-                    statename = vnode.props.statename || "",
-                    parentState = getStateByName(statename) || _root,
+                    definedParentStateName = vnode.props.statename || "",
+                    parentState = getStateByName(definedParentStateName) || _root,
                     _local,
                     currentLocal = {}
                 if (viewname.indexOf("@") < 0)
@@ -521,7 +520,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                 // if (_local) currentLocal = _local
                 var _currentState = _local && _local.state
                 var html = _local && _local.template || defaultHTML
-                if (_currentState) html = html.replace(/ms\-view=/g, 'stateName="' + _currentState.stateName  + '" ms-view=')
+                if (_currentState) html = html.replace(/ ms\-view=/g, ' statename="' + _currentState.stateName  + '" ms-view=')
                 var stateVM = avalon.vmodels[viewname]
                 if (stateVM) {
                     stateVM.__view = html
@@ -534,20 +533,20 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                 }
                 var ret = ['var __stateVM =  avalon.vmodels["' + viewname + '"];',
                     '__stateVM.$nearlyId = __vmodel__.$id;',
-                    'var htmlId = __stateVM.__view.replace();',
+                    'var htmlId = __stateVM.__view;',
                     'vnode' + num + '.htmlVm = __vmodel__',
                     'vnode' + num + '.props["ms-html"]  = htmlId;',
                     // 'vnode' + num + '.props.skipContent  = true;',
-                    'vnode' + num + '.statename = \'' + parentState.stateName + '\';' +
-                    'vnode' + num + '.viewname = \'' + viewname + '\';',
+                    _currentState ? 'vnode' + num + '.statename = \'' + _currentState.stateName + '\';' : '',
+                    'vnode' + num + '.viewname = \'' + viewname + '\';' +
                     'var obj  = avalon.htmlFactory(htmlId,' + num + ');',
                     'try{eval(" new function(){"+ obj.render +"}")}catch(e){};',
-                    'vnode' + num + '.children = avalon.__html;debugger']
+                    'vnode' + num + '.children = avalon.__html;']
                 return ret.join('\n')+'\n'
             },
             diff: function (cur, pre, steps, name) {
                 var curValue = cur.props['ms-html']
-                var preValue = pre.props['ms-html']
+                var preValue = pre.props && pre.props['ms-html']
                 cur.skipContent = false
                 if (curValue !== preValue) {
                     if (cur.props[name] !== preValue) {

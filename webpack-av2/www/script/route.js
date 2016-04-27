@@ -59,7 +59,7 @@ define(["./mmRouter/mmState", "./mmRequest/mmRequest", "./animation/avalon.anima
             console.log("错误信息：" + arguments[0].message)
         }, // 强烈打开错误配置
         onLoad: function() {
-            // root.page = mmState.currentState.stateName.split(".")[1]
+            root.page = mmState.currentState.stateName.split(".")[1]
         },
         onViewEnter: function(newNode, oldNode) {
             avalon(oldNode).animate({
