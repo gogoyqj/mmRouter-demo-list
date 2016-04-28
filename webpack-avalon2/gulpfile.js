@@ -22,10 +22,10 @@ gulp.task('webpack-server', function(callback) {
         stats      : webpackConf.devServer.stats
     });
 
-    devSvr.listen(8000, '0.0.0.0', function(err) {
+    devSvr.listen(8002, '0.0.0.0', function(err) {
         if(err) throw new gutil.PluginError('webpack-dev-server', err);
 
-        gutil.log('[webpack-dev-server]','http://localhost:8000');
+        gutil.log('[webpack-dev-server]','http://localhost:8002');
     });
 });
 

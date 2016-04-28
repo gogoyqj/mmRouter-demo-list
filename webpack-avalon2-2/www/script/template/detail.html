@@ -1,0 +1,11 @@
+<div 
+     ms-controller="detail" class="detail">
+    <h5>{{@title}}</h5>
+    <div class="content" ms-html="@content">
+    </div>
+    <div ms-view="''"><a href="javascript:void(0)" class="comment" ms-click="@comment($event)">评论</a></div>
+    <div class="comments">
+        <p 
+           ms-for="c in @comments">xxx评论到：{{c}}</p>
+    </div>
+</div>

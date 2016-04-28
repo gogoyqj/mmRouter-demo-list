@@ -29,7 +29,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
             this.errorback()
         }
     }
-    var _root, undefine, _controllers = {}, _states = {}
+    var _root, undefine, _controllers = {}, _states = {}, transitionId = 0
     /*
      *  @interface avalon.router.go 跳转到一个已定义状态上，params对参数对象
      *  @param toName 状态name
@@ -149,6 +149,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                 cur.done()
         },
         transitionTo: function (fromState, toState, toParams, options) {
+            transitionId++
             var toParams = toParams || toState.params, fromAbort
             // state machine on transition
             if (this.activeState && (this.activeState != this.currentState)) {
@@ -197,90 +198,95 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
             })
             chains = modulesToLoadObj = null
 
-            getPromise(modulesToLoad).then(function() {
-                if (!reload) {
-                    // 找到共有父状态chain，params未变化
-                    while (state && state === fromChain[i] && !state.paramsChanged(toParams)) {
-                        _local = toLocals[i] = state._local
+            getPromise(modulesToLoad).then((function(trId) {
+                return function() {
+                    // 加载state依赖文件变成异步造成的问题
+                    if (trId != transitionId) return // 其实应该抛出abort
+                    if (!reload) {
+                        // 找到共有父状态chain，params未变化
+                        while (state && state === fromChain[i] && !state.paramsChanged(toParams)) {
+                            _local = toLocals[i] = state._local
+                            i++
+                            state = toChain[i]
+                        }
+                    }
+                    var exitChain = fromChain.slice(i), // 需要退出的chain
+                            enterChain = toChain.slice(i), // 需要进入的chain
+                            commonLocal = _local
+                    // 建立toLocals，用来计算哪些view会被替换
+                    while (state = toChain[i]) {
+                        _local = toLocals[i] = inherit(_local, state.sourceLocal)
                         i++
-                        state = toChain[i]
                     }
-                }
-                var exitChain = fromChain.slice(i), // 需要退出的chain
-                        enterChain = toChain.slice(i), // 需要进入的chain
-                        commonLocal = _local
-                // 建立toLocals，用来计算哪些view会被替换
-                while (state = toChain[i]) {
-                    _local = toLocals[i] = inherit(_local, state.sourceLocal)
-                    i++
-                }
-                mmState._local = _local
-                done = function (success, e) {
-                    if (over)
-                        return
-                    over = true
-                    me.currentState = me.activeState
-                    enterChain = exitChain = commonLocal = _local = toParams = null
-                    mmState.oldNodes = []
-                    if (success !== false) {
-                        mmState.lastLocal = mmState.currentState._local
-                        _root.fire("updateview", me.currentState, changeType)
-                        avalon.log("transitionTo " + toState.stateName + " success")
-                        callStateFunc("onLoad", me, fromState, toState)
-                    } else {
-                        return callStateFunc("onError", me, {
-                            type: "transition",
-                            message: "transitionTo " + toState.stateName + " faild",
-                            error: e,
-                            fromState: fromState,
-                            toState: toState,
-                            params: toParams
-                        }, me.currentState)
+                    mmState._local = _local
+                    done = function (success, e) {
+                        if (over)
+                            return
+                        over = true
+                        me.currentState = me.activeState
+                        enterChain = exitChain = commonLocal = _local = toParams = null
+                        mmState.oldNodes = []
+                        if (success !== false) {
+                            mmState._lastLocal = mmState.lastLocal
+                            mmState.lastLocal = mmState.currentState._local
+                            _root.fire("updateview", me.currentState, changeType)
+                            avalon.log("transitionTo " + toState.stateName + " success")
+                            callStateFunc("onLoad", me, fromState, toState)
+                        } else {
+                            return callStateFunc("onError", me, {
+                                type: "transition",
+                                message: "transitionTo " + toState.stateName + " faild",
+                                error: e,
+                                fromState: fromState,
+                                toState: toState,
+                                params: toParams
+                            }, me.currentState)
+                        }
                     }
-                }
-                toState.path = ("/" + info.path).replace(/^[\/]{2,}/g, "/")
-                if (!reload && fromState === toState) {
-                    changeType = toState.paramsChanged(toParams)
-                    if (!changeType) {
-                        // redirect的目的状态 == me.activeState && abort
-                        if (toState == me.activeState && fromAbort)
-                            return done()
-                        // 重复点击直接return
-                        return
+                    toState.path = ("/" + info.path).replace(/^[\/]{2,}/g, "/")
+                    if (!reload && fromState === toState) {
+                        changeType = toState.paramsChanged(toParams)
+                        if (!changeType) {
+                            // redirect的目的状态 == me.activeState && abort
+                            if (toState == me.activeState && fromAbort)
+                                return done()
+                            // 重复点击直接return
+                            return
+                        }
                     }
-                }
 
-                mmState.query = avalon.mix({}, toParams.query)
+                    mmState.query = avalon.mix({}, toParams.query)
 
-                // onBeforeUnload check
-                if (options && !options.confirmed && (callStateFunc("onBeforeUnload", me, fromState, toState) === false || broadCastBeforeUnload(exitChain, enterChain, fromState, toState) === false)) {
-                    return callStateFunc("onAbort", me, fromState, toState)
-                }
-                if (over === true) {
-                    return
-                }
-                avalon.log("begin transitionTo " + toState.stateName + " from " + (fromState && fromState.stateName || "unknown"))
-                callStateFunc("onUnload", me, fromState, toState)
-                me.currentState = toState
-                me.prevState = fromState
-                mmState._toParams = toParams
-                if (info && avalon.history) {
-                    if (avalon.history.updateLocation) {
-                        avalon.history.updateLocation(info.path + info.query,
-                                avalon.mix({silent: true}, options), !fromState && location.hash)
-                    } else {
-                        avalon.history.navigate(info.path + info.query,
-                                avalon.mix({silent: true}, options))
+                    // onBeforeUnload check
+                    if (options && !options.confirmed && (callStateFunc("onBeforeUnload", me, fromState, toState) === false || broadCastBeforeUnload(exitChain, enterChain, fromState, toState) === false)) {
+                        return callStateFunc("onAbort", me, fromState, toState)
                     }
+                    if (over === true) {
+                        return
+                    }
+                    avalon.log("begin transitionTo " + toState.stateName + " from " + (fromState && fromState.stateName || "unknown"))
+                    callStateFunc("onUnload", me, fromState, toState)
+                    me.currentState = toState
+                    me.prevState = fromState
+                    mmState._toParams = toParams
+                    if (info && avalon.history) {
+                        if (avalon.history.updateLocation) {
+                            avalon.history.updateLocation(info.path + info.query,
+                                    avalon.mix({silent: true}, options), !fromState && location.hash)
+                        } else {
+                            avalon.history.navigate(info.path + info.query,
+                                    avalon.mix({silent: true}, options))
+                        }
+                    }
+                    callStateFunc("onBegin", me, fromState, toState)
+                    me.popOne(exitChain, toParams, function (success) {
+                        // 中断
+                        if (success === false)
+                            return done(success)
+                        me.pushOne(enterChain, toParams, done, commonLocal, toLocals)
+                    }, !(options && options.confirmed))
                 }
-                callStateFunc("onBegin", me, fromState, toState)
-                me.popOne(exitChain, toParams, function (success) {
-                    // 中断
-                    if (success === false)
-                        return done(success)
-                    me.pushOne(enterChain, toParams, done, commonLocal, toLocals)
-                }, !(options && options.confirmed))
-            }, function() {
+            })(transitionId), function() {
                 throw new Error('加载stateUrl资源失败')
             })
         }
@@ -362,117 +368,222 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
         })
         cacheQueue = null
     }
-    // 靠谱的解决方法
-    avalon.bindingHandlers.view = function (data) {
-        data.expr = "'" + (data.expr || "") + "'"
-        var vmodels = data.vmodels || arguments[1]
-        var currentState = mmState.currentState,
-                element = data.element,
-                $element = avalon(element),
-                viewname = (data.value || data.expr || "").replace(/['"]+/g, ""),
-                comment = document.createComment("ms-view:" + viewname),
-                par = element.parentNode,
-                defaultHTML = element.innerHTML,
-                statename = $element.data("statename") || "",
-                parentState = getStateByName(statename) || _root,
-                currentLocal = {},
-                oldElement = element,
-                tpl = element.outerHTML
-        element.removeAttribute("ms-view") // remove right now
-        par.insertBefore(comment, element)
-        function update(firsttime, currentState, changeType) {
-            // node removed, remove callback
-            if (!document.contains(comment)) {
-                data = vmodels = element = par = comment = $element = oldElement = update = null
-                return !"delete from watch"
+    // only for avalon 2
+    var viewMap = mmState.viewMap = {}
+    function mergeLocal(a, b) {
+        a.template = formateTemplate(a.state = b.state, b.template)
+    }
+    // 处理模板的ms-view嵌套，注：不能处理多层嵌套
+    function formateTemplate(state, template) {
+        if (state) template = template.replace(/ ms\-view=/g, ' statename="' + state.stateName  + '" ms-view=')
+        return template
+    }
+    function forInLocal(obj, func) {
+        for (var i in obj) {
+            func(i, obj[i])
+        }
+    }
+    setTimeout(function() {
+        _root.watch("updateview", function(state, changeType) {
+            // 现在是全量更新...
+            var local = state._local, viewToRender = [], vmsObj = {}
+            forInLocal(local, function(i, v) {
+                var viewObj = viewMap[i] = viewMap[i] || {}
+                if (viewObj) {
+                    mergeLocal(viewObj, local[i])
+                }
+                viewToRender.push(i)
+            })
+            avalon.each(viewToRender, function(i, stateName) {
+                var viewObj = viewMap[stateName]
+                if (viewObj) {
+                    var nearlyId = viewObj.$nearlyId
+                    if (nearlyId) {
+                        vmsObj[nearlyId] = ''
+                    }
+                }
+            })
+            forInLocal(vmsObj, function(vid) {
+                avalon.batch(vid)
+            })
+            vmsObj = null
+
+        //         lastLocal = mmState._lastLocal,
+        //         viewToRender = [],
+        //         nowKeys = {}
+        //     if (!lastLocal) {
+        //         forInLocal(local, function(i, v) {
+        //             var viewObj = viewMap[i] = viewMap[i] || {}
+        //             if (viewObj) {
+        //                 mergeLocal(viewObj, local[i])
+        //             }
+        //         })
+        //     } else {
+        //         forInLocal(local, function(i, v) {
+        //             if (!(i in lastLocal) || local[i] != lastLocal[i]) {
+        //                 // 找到需要更新的view
+        //                 viewToRender.push(i)
+        //                 var viewObj = viewMap[i] = viewMap[i] || {}
+        //                 if (viewObj) {
+        //                     mergeLocal(viewObj, local[i])
+        //                 }
+        //             }
+        //             nowKeys[i] = 1
+        //         })
+        //         for (var i in lastLocal) {
+        //             if (i in nowKeys) continue
+        //             viewToRender.push(i)
+        //         }
+        //     }
+        //     nowKeys = null
+        //     if (!viewToRender.length) {
+        //         // root vm reRender
+        //         mmState.reRenderRoot && mmState.reRenderRoot()
+        //         console.log('need to render root')
+        //     } else {
+        //         var vmsObj = {}
+        //         avalon.each(viewToRender, function(i, stateName) {
+        //             var viewObj = viewMap[stateName]
+        //             if (viewObj) {
+        //                 var nearlyId = viewObj.$nearlyId
+        //                 if (nearlyId && !(nearlyId in vmsObj)) {
+        //                     vmsObj[nearlyId] = ''
+        //                 }
+        //             }
+        //         })
+        //         forInLocal(vmsObj, function(vid) {
+        //             avalon.batch(vid)
+        //         })
+        //         vmsObj = null
+        //     }
+        })
+    })
+
+    function walkTree(children, curDeep, par) {
+        avalon.each(children, function(i, item) {
+            var cur = item.type, // 当前状态名字
+                props = item.props || {},
+                key = 'stateUrl'
+            if ('stateurl' in props) {
+                props[key] = props.stateurl
+                props.stateurl = null
             }
-            var definedParentStateName = $element.data("statename") || "",
-                    parentState = getStateByName(definedParentStateName) || _root,
-                    _local
+            if (!('url' in props)) props.url = curDeep ? '' : '/'
+            cur = typeof par == 'undefined' ? cur : par + '.' + cur
+            if (props[key] || curDeep) {
+                avalon.state(cur, props)
+                console.log(getStateByName(cur))
+                walkTree(item.children, ++curDeep, cur)
+            } else {
+                avalon.log('【错误】状态' + cur + '未指定' + key)
+            }
+        })
+    }
+
+    avalon.component('ms-state', {
+        template: '<wbr/>',
+        defaults: {
+            onInit: function(obj) {
+                var wid = obj.wid,
+                    template = avalon.resolvedComponents[wid].template.replace(/[\r\n\t][\s]+/g, ''),
+                    tree = avalon.lexer(template, 0, 100) // 不限定层数
+                walkTree(tree, 0)
+            },
+            onReady: function() {
+                if (this.$onReady) this.$onReady.apply(this, Array.prototype.slice.call(arguments, 0))
+            },
+            onDispose: function() {
+
+            },
+            name: '',
+            abstract: false
+        }
+    })
+
+    avalon.directive('view', {
+        priority: 2,
+        parse: function(binding, num, vnode) {
+            vnode.voidtag = !!vnode.isVoidTag // 避免children被默认的覆盖
+            vnode.isVoidTag = true
+            var currentState = mmState.currentState,
+                viewname = binding.expr.replace(/['"]+/g, "")
             if (viewname.indexOf("@") < 0)
-                viewname += "@" + parentState.stateName
-            _local = mmState.currentState._local && mmState.currentState._local[viewname]
-            if (firsttime && !_local || currentLocal === _local)
-                return
-            currentLocal = _local
-            var _currentState = _local && _local.state
-            // 缓存，如果加载dom上，则是全局配置，针对template还可以开一个单独配置
-            var cacheTpl = $element.data("viewCache"),
-                    lastCache = $element.data("currentCache")
-            if (_local) {
-                cacheTpl = (_local.viewCache === false ? false : _local.viewCache || cacheTpl) && (viewname + "@" + _currentState.stateName)
-            } else if (cacheTpl) {
-                cacheTpl = viewname + "@__default__"
+                viewname += "@" + (getStateByName(vnode.props.statename || "") || _root).stateName
+            var _local = currentState && currentState._local && currentState._local[viewname],
+                _currentState = _local && _local.state,
+                html = formateTemplate(_currentState, _local && _local.template || vnode.template),
+                viewObj = viewMap[viewname]
+            if (viewObj) {
+                viewObj.template = html
+            } else {
+                viewObj = viewMap[viewname] = {
+                    $id: viewname,
+                    $nearlyId: mmState.undefine,
+                    template: html
+                }
             }
-            // stateB->stateB，配置了参数变化不更新dom
-            if (_local && _currentState === currentState && _local.ignoreChange && _local.ignoreChange(changeType, viewname))
-                return
-            // 需要load和使用的cache是一份
-            if (cacheTpl && cacheTpl === lastCache)
-                return
-            compileNode(tpl, element, $element, _currentState)
-            var html = _local ? _local.template : defaultHTML,
-                    fragment
-            if (cacheTpl) {
-                if (_local) {
-                    _local.element = element
-                } else {
-                    mmState.currentState._local[viewname] = {
-                        state: mmState.currentState,
-                        template: defaultHTML,
-                        element: element
+            return [
+                'var __viewname = "' + viewname + '";',
+                'var __viewObj         =  mmState.viewMap[__viewname];',
+                'var __currentState    = __viewObj.state || {};',
+                'var __viewTemplate    = __viewObj.template;',
+                'var __htmlFactoryObj  = avalon.htmlFactory(__viewTemplate,' + num + ');',
+                'try{eval(" new function(){"+ __htmlFactoryObj.render +"}")}catch(e){};',
+                'if (__currentState) vnode' + num + '.statename = __currentState.stateName;',
+                '__viewObj.$nearlyId                = __vmodel__.$id;',
+                'vnode' + num + '.htmlVm            = __vmodel__',
+                'vnode' + num + '.viewname          = \'' + viewname + '\';' +
+                'vnode' + num + '.props["ms-html"]  = __viewTemplate;',
+                'vnode' + num + '.voidtag  = ' + vnode.voidtag + ';',
+                'vnode' + num + '.children          = avalon.__html;'].join('\n')+'\n'
+        },
+        diff: function (cur, pre, steps, name) {
+            cur.isVoidTag = cur.voidtag
+            var curValue = cur.props['ms-html']
+            var preValue = pre.props && pre.props['ms-html']
+            if (curValue !== preValue) {
+                if (cur.props['ms-html'] !== preValue) {
+                    var list = cur.change || (cur.change = [])
+                    if (avalon.Array.ensure(list, this.update)) {
+                        steps.count += 1
                     }
                 }
             }
-            avalon.clearHTML(element)
-            // oldElement = element
-            element.removeAttribute("ms-view")
-            element.setAttribute("ui-view", data.value || data.expr || "")
-            // 本次更新的dom需要用缓存
-            if (cacheTpl) {
-                // 已缓存
-                if (templateCache[cacheTpl]) {
-                    fragment = loadCache(cacheTpl)
-                    // 未缓存
-                } else {
-                    fragment = avalon.parseHTML(html)
-                }
-                element.appendChild(fragment)
-                // 更新现在使用的cache名字
-                $element.data("currentCache", cacheTpl)
-                if (templateCache[cacheTpl])
-                    return
+        },
+        update: function (node, vnode) {
+            if (node.nodeType !== 1) {
+                return
+            }
+            if (node.querySelectorAll) {
+                var nodes = node.querySelectorAll('[avalon-events]')
+                avalon.each(nodes, function (i, el) {
+                    avalon.unbind(el)
+                })
             } else {
-                element.innerHTML = html
-                $element.data("currentCache", false)
+                var nodes = node.getElementsByTagName('*')
+                //IE6-7这样取所有子孙节点会混入注释节点
+                avalon.each(nodes, function (i, el) {
+                    if (el.nodeType === 1 && el.getAttribute('avalon-events')) {
+                        avalon.unbind(i, el)
+                    }
+                })
             }
-            // default
-            if (!_local && cacheTpl)
-                $element.data("currentCache", cacheTpl)
-            avalon.each(getViewNodes(element), function (i, node) {
-                avalon(node).data("statename", _currentState && _currentState.stateName || "")
+            // 动画
+            if (node.className.indexOf('oni-mmRouter-slide') != -1) {
+                compileNode(null, node, avalon(node), mmState.currentState)
+            }
+            avalon.clearHTML(node)
+            var fragment = document.createDocumentFragment()
+            vnode.children.forEach(function (c) {
+                fragment.appendChild(avalon.vdomAdaptor(c, 'toDOM'))
             })
-            // merge上下文vmodels + controller指定的vmodels
-            avalon.scan(element, (_local && _local.vmodels || []).concat(vmodels || []))
-            // 触发视图绑定的controller的事件
-            if (_local && _local.$ctrl) {
-                _local.$ctrl.$onRendered && _local.$ctrl.$onRendered.apply(element, [_local])
-            }
+            node.appendChild(fragment)
         }
-        update("firsttime")
-        _root.watch("updateview", function (state, changeType) {
-            return update.call(this, undefine, state, changeType)
-        })
-    }
-    if (avalon.directives) {
-        avalon.directive("view", {
-            init: avalon.bindingHandlers.view
-        })
-    }
+    })
     function compileNode(tpl, element, $element, _currentState) {
         if ($element.hasClass("oni-mmRouter-slide")) {
             // 拷贝一个镜像
-            var copy = element.cloneNode(true)
+            var copy = element.cloneNode() // 不能深度拷贝
             copy.setAttribute("ms-skip", "true")
             avalon(copy).removeClass("oni-mmRouter-enter").addClass("oni-mmRouter-leave")
             avalon(element).addClass("oni-mmRouter-enter")
@@ -1120,5 +1231,20 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                     reason.message = "必须存在template, templateUrl, templateProvider中的一个"
                     reject(reason)
                 })
+    }
+
+    
+    avalon.controller.loader = function (url, callback) {
+        // 没有错误回调...
+        function wrapper($ctrl) {
+            callback && callback($ctrl)
+        }
+        // require([url], wrapper)
+        var md = require(url)
+        if (md) {
+            wrapper(md)
+        } else {
+            __webpack_require__.e(url, wrapper)
+        }
     }
 })
