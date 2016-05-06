@@ -211,8 +211,8 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                         }
                     }
                     var exitChain = fromChain.slice(i), // 需要退出的chain
-                            enterChain = toChain.slice(i), // 需要进入的chain
-                            commonLocal = _local
+                        enterChain = toChain.slice(i), // 需要进入的chain
+                        commonLocal = _local
                     // 建立toLocals，用来计算哪些view会被替换
                     while (state = toChain[i]) {
                         _local = toLocals[i] = inherit(_local, state.sourceLocal)
@@ -406,6 +406,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
             forInLocal(vmsObj, function(vid) {
                 avalon.batch(vid)
             })
+            // console.log(vmsObj)
             vmsObj = null
         })
     })
@@ -477,7 +478,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                 viewObj = viewMap[viewname] = {
                     $id: viewname,
                     $nearlyId: mmState.undefine,
-                    template: html
+                    template: html,
                 }
             }
             return [
@@ -489,7 +490,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
                 'try{eval(" new function(){"+ __htmlFactoryObj.render +"}")}catch(e){};',
                 'if (__currentState) vnode' + num + '.statename = __currentState.stateName;',
                 '__viewObj.$nearlyId                = __vmodel__.$id;',
-                'vnode' + num + '.htmlVm            = __vmodel__',
+                'vnode' + num + '.htmlVm            = __vmodel__;',
                 'vnode' + num + '.viewname          = \'' + viewname + '\';' +
                 'vnode' + num + '.props["ms-html"]  = __viewTemplate;',
                 'vnode' + num + '.voidtag  = ' + vnode.voidtag + ';',
@@ -896,7 +897,7 @@ define(["../mmPromise/mmPromise", "./mmRouter"], function () {
             })
             // query
             if (!changed && mmState.currentState === this) {
-                changed = !objectCompare(toParams.query, mmState.query) && "query"
+                changed = !objectCompare(toParams.query || {}, mmState.query) && "query"
             }
             return changed
         },
