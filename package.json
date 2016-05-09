@@ -1,0 +1,31 @@
+{
+  "name": "mmstate",
+  "version": "1.0.0",
+  "description": "generate avalon[1.4.7 or 2.*.*] app base on mmState",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gogoyqj/mmRouter-demo-list.git"
+  },
+  "keywords": [
+    "avalon",
+    "mmState",
+    "router"
+  ],
+  "author": "skipper",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gogoyqj/mmRouter-demo-list/issues"
+  },
+  "homepage": "https://github.com/gogoyqj/mmRouter-demo-list#readme",
+  "dependencies": {
+    "cli-color": "^1.1.0",
+    "commander": "^2.9.0",
+    "download": "^4.4.3",
+    "fs-extra": "^0.30.0",
+    "unzip": "^0.1.11"
+  }
+}

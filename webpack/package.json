@@ -1,7 +1,7 @@
 {
   "name": "m.zjgt.com",
   "version": "1.0.0",
-  "description": "zjgt m version",
+  "description": "avalon app base on mmState",
   "main": "index.html",
   "author": "",
   "license": "ISC",

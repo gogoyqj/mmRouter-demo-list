@@ -1,10 +1,9 @@
 {
   "name": "script",
   "version": "1.0.0",
-  "description": "",
+  "description": "avalon app base on mmState",
   "main": "main.js",
   "dependencies": {
-    "webpack": "^1.10.1"
   },
   "devDependencies": {},
   "scripts": {
