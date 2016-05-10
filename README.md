@@ -1,3 +1,30 @@
+## mmState CLI && demo list
+
+### CLI
+
+```
+    npm install mmstate #安装
+
+    mmstate new projectName #创建一个默认使用avalon 1.7的mmState项目
+
+    mmstate new -h
+        -v, --avalonVersion [avalonVersion]  avalon的版本
+        -l, --loader [loader]                打包方式，requirejs or webpack，avalon 2只能用webpack打包
+
+    cd projectName 
+
+    mmstate serve #启动服务器
+
+    mmstate update #更新模板库，linux上可能需要 suo
+
+    mmstate build #编译
+```
+
+
+### 例子
+
+
+
 ** 需要服务器环境才能跑起来【commonjs need fekit】
 
 1，打开页面看效果
@@ -12,43 +39,53 @@
 
 requirejs和webpack版本都支持打包以及按需加载
 
-###requirejs打包：r.js
+###requirejs打包：gulpfile.js
 
-build.js配置
+build task配置
 
 ```
-({
-    appDir: "www",
-    baseUrl: "script/",
-    dir: "build",
-    map: {
-        "*": {
-            "css": "require-css/css",
-            "avalon": "empty:" // 不打包avalon
-        }
-    },
-    skipDirOptimize: true, // 只处理modules的配置
-    optimizeCss: "none",
-    //separateCSS: true,
-    //buildCSS: false,
-    modules: [
-        {
-            name: "common"
+gulp.task('build', function() {
+    var requirejs = require('requirejs');
+
+    var config = {
+        appDir: "www",
+        baseUrl: "script/",
+        dir: "build",
+        map: {
+            "*": {
+                "css": "require-css/css",
+                "text": "lib/text",
+                "avalon": "empty:" // 不打包avalon
+            }
         },
-        {
-            name: "pages/stateBlog",
-            exclude: ["text"]
-        },
-        {
-            name: "pages/stateDetail",
-            exclude: ["text"]
-        },
-        {
-            name: "pages/stateList",
-            exclude: ["text"]
-        }
-    ]
-})
+        skipDirOptimize: true, // 只处理modules的配置
+        optimizeCss: "none",
+        //separateCSS: true,
+        //buildCSS: false,
+        modules: [
+            {
+                name: "common"
+            },
+            {
+                name: "pages/stateBlog",
+                exclude: ["text"]
+            },
+            {
+                name: "pages/stateDetail",
+                exclude: ["text"]
+            },
+            {
+                name: "pages/stateList",
+                exclude: ["text"]
+            }
+        ]
+    };
+
+    requirejs.optimize(config, function (buildResponse) {
+        var contents = fs.readFileSync(config.out, 'utf8');
+    }, function(err) {
+    });
+});
 ```
 
 

@@ -4,6 +4,9 @@
   "description": "avalon app base on mmState",
   "main": "main.js",
   "dependencies": {
+    "gulp": "^3.9.1",
+    "gulp-webserver": "^0.9.1",
+    "requirejs": "^2.2.0"
   },
   "devDependencies": {},
   "scripts": {

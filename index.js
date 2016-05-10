@@ -8,7 +8,8 @@ var program = require('commander'),
     http    = require('https'),
     which   = require('os').tmpdir().indexOf('\\') != -1 ? 'where' : 'which',
     tpldir  = __dirname + '/__tpldir',
-    infoPath= tpldir + '/__info.json'
+    infoPath= tpldir + '/__info.json',
+    open = commandChecker('open', !'show no log')
 
 
 function error(msg) {
@@ -36,13 +37,13 @@ function loadInfo() {
     return false
 }
 
-function commandChecker(cmd) {
+function commandChecker(cmd, printLog) {
     try {
         child_process.execSync(which + ' ' + cmd).toString()
-        success(cmd + '已安装')
+        if (printLog !== false) success(cmd + '已安装')
         return true
     } catch(e) {
-        error(cmd + ' is required, run "npm install -g ' + cmd + '"')
+        if (printLog !== false) error(cmd + ' is required, run "npm install -g ' + cmd + '"')
         return false
     }
 }
@@ -106,24 +107,71 @@ program
 
 program
     .command('serve')
+    // .option('-p, --port [port]', '端口，默认8080，使用gulp-dev-server或者webpack-dev-server该项配置无效')
     .description('serve 启动服务')
     .action(function (options) {
         var cwd = process.cwd(),
-            __info = cwd + '/__info.json'
-        try {
-            __info = fs.readJsonSync(__info)
-            if (__info.loader !== 'requirejs') {
-                var ps = child_process.spawn('gulp', ['run-webpack'])
-                ps.stdout.on('data', function (data) {
-                    log(data.toString());
-                });
-
-                ps.stderr.on('data', function (data) {
-                    error(data.toString());
-                });
+            __info = cwd + '/__info.json',
+            options = options || {},
+            port = options.port || 8080
+        if (commandChecker('gulp')) {
+            try {
+                __info = fs.readJsonSync(__info)
+                var args = ['gulp', ['webserver']],
+                    url = 'http://localhost:' + port
+                // if (__info.loader == 'requirejs') {
+                    // if (commandChecker('python', !'show no log')) {
+                    //     success('检测到python，使用python启动服务，端口:' + port)
+                    //     args = ['python', ['-m', 'SimpleHTTPServer', port]]
+                    // } else {
+                    //     try {
+                    //         var express = require('express'),
+                    //             app = express()
+                    //         success('检测到express，使用express启动服务，端口:' + port)
+                    //         app.use(express.static(cwd + '/www'))
+                    //         app.listen(port)
+                    //         args = null
+                    //     } catch(e) {
+                    //         return error('检测到系统未安装python或者express，无法启动服务')
+                    //     }
+                    // }
+                // }
+                if (args) {
+                    var ps = child_process.spawn(args[0], args[1], {cwd: cwd + '/www'})
+                    ps.stdout.on('data', function (data) {
+                        log(data.toString())
+                    })
+                    ps.stderr.on('data', function (data) {
+                        var msg = data.toString()
+                        if (msg.match(/HTTP\/[0-9]\.[0-9]" [0-9]{3}/g)) {
+                            log(msg)
+                        } else {
+                            error(msg)
+                        }
+                    })
+                }
+            } catch(e) {
+                return error('启动失败' + error)
             }
-        } catch(e) {
-            return error('启动失败' + error)
+        }
+    })
+
+program
+    .command('build')
+    .option('-t, --task [task]', 'gulp任务名，默认是build')
+    .description('build 编译项目')
+    .action(function(options) {
+        options = options || {}
+        var task = options.task || 'build',
+            cwd = process.cwd()
+        if (commandChecker('gulp')) {
+            var ps = child_process.spawn('gulp', [task], {cwd: cwd})
+            ps.stdout.on('data', function (data) {
+                log(data.toString())
+            })
+            ps.stderr.on('data', function (data) {
+                error(data.toString())
+            })
         }
     })
 
