@@ -3,7 +3,7 @@
 ### CLI
 
 ```
-    npm install mmstate #安装
+    npm install mmstate -g #安装
 
     mmstate new projectName #创建一个默认使用avalon 1.7的mmState项目
 
@@ -15,7 +15,7 @@
 
     mmstate serve #启动服务器
 
-    mmstate update #更新模板库，linux上可能需要 suo
+    mmstate update #更新模板库，linux上可能需要 sudo
 
     mmstate build #编译
 ```
