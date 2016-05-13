@@ -36,13 +36,15 @@ function makeConf(options){
             "detail": ["script/detail"],
             "list"  : ["script/list"],
             "route" : ["route", "script/blog"],
-            "lib"   : ['avalon', 'mmPromise', 'script/avalon.getModel.js', 'mmRequest', 'mmState', 'Animation']
+            "avalon": ['script/avalon.new', 'mmPromise'],
+            "lib"   : ['script/avalon.getModel.js', 'mmRequest', 'mmState', 'Animation']
         },
         output: {
             path: path.resolve('./'),
             filename: 'build/script/[name].js',
             chunkFilename: 'build/script/[name].js',
-            publicPath: '/'
+            publicPath: '/',
+            libraryTarget: 'var'
         },
 
         resolve: {
@@ -50,7 +52,9 @@ function makeConf(options){
             alias: alias,
             extensions: ['', '.js', '.css', '.scss', '.png', '.jpg', '.jpeg']
         },
-
+        externals: {
+            jquery: "jQuery" // 通过CDN - 把全局变量转成module
+        },
         module: {
             noParse: ['avalon', 'script/avalon.new', 'node_modules'],
             loaders: [
@@ -65,13 +69,10 @@ function makeConf(options){
             new ExtractTextPlugin('build/css/[name].css',{
                 allChunks: true
             }),
-            new webpack.ProvidePlugin({
-                avalon: "avalon"
-            }),
             new webpack.optimize.CommonsChunkPlugin({
-                name: "lib", 
+                name: "avalon", 
                 minChunks: Infinity,
-                filename: "build/script/lib.js"
+                filename: "build/script/avalon.js"
             }),
             new StateUrlCompilationPlugin({})
         ],

@@ -3,7 +3,8 @@ define(["./mmRouter/mmState", "./mmRequest/mmRequest", "./animation/avalon.anima
     var root = avalon.define({
         $id: "root",
         page: ""
-    })
+    }), $ = require('jquery')
+
     // 定义一个全局抽象状态，用来渲染通用不会改变的视图，比如header，footer
     avalon.state("blog", {
         url: "/",
