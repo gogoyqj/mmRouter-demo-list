@@ -53,7 +53,8 @@ function makeConf(options){
             extensions: ['', '.js', '.css', '.scss', '.png', '.jpg', '.jpeg']
         },
         externals: {
-            jquery: "jQuery" // 通过CDN - 把全局变量转成module
+            jquery: "jQuery", // 通过CDN - 把全局变量转成module
+            rap   : "RAP",
         },
         module: {
             noParse: ['avalon', 'script/avalon.new', 'node_modules'],
