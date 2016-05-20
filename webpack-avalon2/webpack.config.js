@@ -17,8 +17,8 @@ var excludeFromStats = [
 var srcDir = path.resolve(process.cwd(), 'www');
 
 var alias = {
-    avalon     : 'script/avalon.new',
-    '../avalon': 'script/avalon.new',
+    avalon     : 'script/avalon',
+    '../avalon': 'script/avalon',
     mmRequest  : 'script/mmRequest/mmRequest',
     mmPromise  : 'script/mmPromise/mmPromise',
     mmRouter   : 'script/mmRouter/mmRouter',
@@ -33,6 +33,7 @@ function makeConf(options){
 
     var config = {
         entry: {
+            "avalon": ["avalon"],
             "detail": ["script/detail"],
             "list"  : ["script/list"],
             "route" : ["route", "script/blog"],
@@ -43,10 +44,6 @@ function makeConf(options){
             filename: 'build/script/[name].js',
             chunkFilename: 'build/script/[name].js',
             publicPath: '/',
-        },
-
-        externals: {
-            'avalon': 'avalon',
         },
 
         resolve: {
@@ -67,10 +64,15 @@ function makeConf(options){
                 allChunks: true
             }),
             new webpack.optimize.CommonsChunkPlugin({
-                name: "lib", 
+                name: "avalon", 
                 minChunks: Infinity,
-                filename: "build/script/lib.js"
+                filename: "build/script/avalon.js"
             }),
+            // new webpack.optimize.CommonsChunkPlugin({
+            //     name: "lib", 
+            //     minChunks: Infinity,
+            //     filename: "build/script/lib.js"
+            // }),
             new StateUrlCompilationPlugin({})
         ],
         devServer: {

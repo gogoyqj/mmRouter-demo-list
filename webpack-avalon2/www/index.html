@@ -8,11 +8,13 @@
     </head>
     <body 
           ms-controller="root">
+          <span>number: {{@number}}</span>
+          <span>date: {{@date | date('yyyy- MM- dd mm:ss')}}</span>
         <div ms-view="" class="layout"></div>
         <div ms-view="footer">nihao</div>
         <!-- <div ms-html="@page">nihao</div> -->
     </body>
-    <script type="text/javascript" src="http://127.0.0.1:8080/www/script/avalon.js"></script>
+    <script type="text/javascript" src="build/script/avalon.js"></script>
     <script src="build/script/lib.js"></script>
     <script src="build/script/route.js"></script>
 </html>
