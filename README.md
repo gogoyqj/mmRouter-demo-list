@@ -202,3 +202,19 @@ function makeConf(options){
 module.exports = makeConf({});
 
 ```
+
+fis3 + requirejs 可能出现的问题
+
+fis3将amd模块转成 define(moduleName, deps, callback)，然后文件名和moduleName一般不一致，因此需要修改：
+
+```
+    avalon.controller.loader = function(url, callback) {
+        // 通过url加载文件
+        require(url, function() {
+            // 通过moduleName引用
+            callback(require(url[0].split('_')[0]))
+        })
+    }
+    
+    controllerUrl: __uri("modules/bindRoomType/bind-room-type-ctrl.js")
+```
