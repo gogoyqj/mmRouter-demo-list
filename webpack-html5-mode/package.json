@@ -1,0 +1,19 @@
+{
+  "name": "m.zjgt.com",
+  "version": "1.0.0",
+  "description": "avalon app base on mmState",
+  "main": "index.html",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "extract-text-webpack-plugin": "^1.0.1",
+    "gulp": "^3.9.1",
+    "gulp-util": "^3.0.7",
+    "gulp-webserver": "^0.9.1",
+    "html-loader": "^0.4.3",
+    "html-webpack-plugin": "^2.12.0",
+    "style-loader": "^0.13.0",
+    "webpack": "^1.12.14",
+    "webpack-dev-server": "^1.14.1"
+  }
+}

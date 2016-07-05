@@ -195,7 +195,10 @@ define(["avalon"], function(avalon) {
                 // html5 mode 第一次加载的时候保留之前的hash
                 var path = this.rootpath + hash + (urlHash || "")
                 // html5 model包含query
-                if(path != this.location.href.split("#")[0]) history[rp ? "replaceState" : "pushState"]({path: path}, document.title, path)
+                if(path != this.location.href.split("#")[0]) {
+                    history[rp ? "replaceState" : "pushState"]({path: path}, document.title, path)
+                    this.fragment = path
+                }
                 if(!st) this._fireLocationChange()
             } else {
                 var newHash = this.prefix + hash
