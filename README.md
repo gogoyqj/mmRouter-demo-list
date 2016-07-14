@@ -1,5 +1,7 @@
 ## mmState CLI && demo list
 
+## 对avalon 2的支持不是那么好，慎之慎之
+
 ### README.MD
 
 https://github.com/gogoyqj/avalon.oniui/tree/master/mmRouter
